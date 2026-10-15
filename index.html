@@ -189,7 +189,7 @@
 <script>
 "use strict";
 
-const LS_KEY = "workshop-planner-v1";
+const LS_KEY = "workshop-planner-v2";
 const GLASS = 6;   // толщина стеклянной стенки, см
 const WALL = 15;   // толщина капитальных стен на рисунке, см
 const CELL = 2.5;  // шаг сетки для расчёта проходов, см
@@ -235,31 +235,31 @@ function fromPreset(key, x, y, rot = 0) {
   return { id: uid(), preset: key, ...rest, x, y, rot };
 }
 
-function defaultState() {
-  return {
-    room: { w: 265, h: 250, H: 300, out: 290 },
-    settings: { persons: 1, workClass: 15, passMin: 100, reachMin: 60, circuitKW: 3.6, snap: 5 },
-    view: { showOutside: true, showZones: true, showPath: true, showReach: false },
-    openings: [
-      { id: uid(), role: "window", kind: "window", wall: "top", off: 85, w: 105 },
-      { id: uid(), role: "toilet", kind: "door", wall: "right", off: 40, w: 70, swing: "out", hinge: "a" },
-      { id: uid(), role: "entry", kind: "door", wall: "bottom", off: 90, w: 85, swing: "out", hinge: "a" },
-    ],
-    items: [
-      fromPreset("table180", 0, 0, 0),
-      fromPreset("temper", 6, 3, 0),
-      fromPreset("silk", 60, 20, 0),
-      fromPreset("vibro", 108, 7, 0),
-      fromPreset("melanger", 0, 120, 270),
-      fromPreset("shelf", 0, 190, 270),
-      fromPreset("handwash", 210, 0, 0),
-      fromPreset("fridge", 205, 190, 90),
-      fromPreset("crusher", 20, 290, 0),
-      fromPreset("ext", 240, 262, 0),
-    ],
-    checklist: {},
-  };
-}
+const DEFAULT_PLAN = {
+  room: { w: 265, h: 210, H: 300, out: 290 },
+  settings: { persons: 1, workClass: 15, passMin: 100, reachMin: 60, circuitKW: 3.6, snap: 5 },
+  view: { showOutside: false, showZones: true, showPath: false, showReach: true },
+  openings: [
+    { id: "sfmcy3a", role: "toilet", kind: "door", wall: "left", off: 40, w: 70, swing: "slide", hinge: "a" },
+    { id: "uo8t2g7", role: "entry", kind: "door", wall: "bottom", off: 60, w: 80, swing: "out", hinge: "a" },
+    { id: "m1rpyn1", role: "window", kind: "window", wall: "top", off: 75, w: 80, swing: "in", hinge: "a" },
+  ],
+  items: [
+    { id: "hd59fel", preset: "table180", name: "Рабочий стол 180×60", w: 134, d: 60, h: 90, kind: "floor", surface: true, front: 60, kW: 0, color: "#cbd5e1", x: 205, y: 75, rot: 90 },
+    { id: "th9qh5d", preset: "temper", name: "Темперирующая ванна 20 кг", w: 47, d: 54, h: 50, kind: "top", front: 0, kW: 0.3, color: "#0e7490", url: "https://kadzama.com/c/equipment/wheeled-chocolate-molding-machine/", x: 210, y: 75, rot: 90 },
+    { id: "4pz2cvx", preset: "silk", name: "Mini SilkTemper", w: 21, d: 12.5, h: 13.5, kind: "top", front: 0, kW: 0.1, color: "#7c3aed", url: "https://kadzama.com/c/equipment/mini-incubator-for-cocoa-butter-crystals-easy-tempering-machine/", x: 220, y: 125, rot: 180 },
+    { id: "8y6f9ms", preset: "vibro", name: "Вибростол", w: 66, d: 46, h: 30, kind: "top", front: 0, kW: 0.1, color: "#475569", url: "https://kadzama.com/c/equipment/vibrating-table/", x: 215, y: 140, rot: 90 },
+    { id: "lr1dktb", preset: "melanger", name: "Меланжер 35 кг", w: 68, d: 91, h: 110, kind: "floor", front: 70, kW: 2.2, color: "#a0703f", url: "https://kadzama.com/c/equipment/melanger-35-kg/", x: 170, y: 5, rot: 90 },
+    { id: "ho6xi09", preset: "shelf", name: "Стеллаж", w: 55, d: 35, h: 180, kind: "floor", front: 50, kW: 0, color: "#d6b98c", x: 45, y: 0, rot: 0 },
+    { id: "yfgfxvo", preset: "handwash", tag: "handwash", name: "Раковина для рук", w: 45, d: 35, h: 85, kind: "floor", front: 50, kW: 0, color: "#67e8f9", x: 0, y: 0, rot: 0 },
+    { id: "rfrw9yo", preset: "fridge", name: "Холодильник", w: 60, d: 60, h: 185, kind: "floor", front: 60, kW: 0.2, color: "#93c5fd", x: 5, y: 305, rot: 270 },
+    { id: "tw10gd5", preset: "crusher", name: "Дробилка с веялкой", w: 63, d: 56, h: 123, kind: "floor", front: 70, kW: 0.5, color: "#ca8a04", url: "https://kadzama.com/c/equipment/crusher-and-winnower-for-cocoa-beans/", x: 0, y: 145, rot: 270 },
+    { id: "cjwxnof", preset: "ext", tag: "extinguisher", name: "Огнетушитель", w: 20, d: 20, h: 60, kind: "wall", front: 0, kW: 0, color: "#ef4444", x: 245, y: 220, rot: 0 },
+  ],
+  checklist: {},
+};
+
+function defaultState() { return JSON.parse(JSON.stringify(DEFAULT_PLAN)); }
 
 let S = load() || defaultState();
 let sel = null;
