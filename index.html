@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Планировщик мастерской</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --bg: #f3f4f6; --panel: #fff; --line: #e2e5ea; --text: #1f2328; --muted: #6b7280;
+    --accent: #2563eb; --err: #dc2626; --warn: #d97706; --ok: #16a34a; --info: #2563eb;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; font: 13px/1.4 system-ui, "Segoe UI", Roboto, sans-serif; color: var(--text); background: var(--bg);
+    display: grid; grid-template-columns: 280px 1fr 360px; grid-template-rows: auto 1fr; height: 100vh; overflow: hidden;
+  }
+  header {
+    grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    padding: 8px 12px; background: var(--panel); border-bottom: 1px solid var(--line);
+  }
+  header h1 { font-size: 16px; margin: 0 10px 0 0; }
+  header .hint { color: var(--muted); margin-left: auto; font-size: 12px; }
+  button {
+    font: inherit; padding: 5px 10px; border: 1px solid var(--line); background: #fff; border-radius: 6px; cursor: pointer;
+  }
+  button:hover { border-color: #b8bec8; background: #f9fafb; }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button.danger { color: var(--err); }
+  aside { overflow-y: auto; background: var(--panel); padding: 10px 12px; }
+  aside.left { border-right: 1px solid var(--line); }
+  aside.right { border-left: 1px solid var(--line); }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 14px 0 6px; }
+  h2:first-child { margin-top: 2px; }
+  details { border-top: 1px solid var(--line); padding: 6px 0; }
+  details > summary { cursor: pointer; font-weight: 600; padding: 2px 0; }
+  .palette { display: grid; grid-template-columns: 1fr; gap: 4px; }
+  .palette button { text-align: left; display: flex; gap: 8px; align-items: center; }
+  .palette small { color: var(--muted); margin-left: auto; white-space: nowrap; }
+  .sw { width: 12px; height: 12px; border-radius: 3px; flex: none; border: 1px solid rgba(0,0,0,.2); }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 4px 0; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 4px 0; }
+  label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); }
+  label.inline { flex-direction: row; align-items: center; gap: 6px; color: var(--text); }
+  input, select, textarea {
+    font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: 5px; width: 100%; color: var(--text); background: #fff;
+  }
+  input[type=checkbox] { width: auto; }
+  input[type=color] { padding: 1px; height: 28px; }
+  #stage { position: relative; overflow: hidden; background: #e9ebef; }
+  #svg { width: 100%; height: 100%; display: block; user-select: none; touch-action: none; }
+  #stats {
+    position: absolute; left: 10px; bottom: 10px; background: rgba(255,255,255,.92); border: 1px solid var(--line);
+    border-radius: 8px; padding: 6px 10px; font-size: 12px; pointer-events: none;
+  }
+  .viewbar { position: absolute; right: 10px; top: 10px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+  .viewbar label { background: rgba(255,255,255,.92); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; }
+  .issues { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+  .issues li {
+    padding: 6px 8px; border-radius: 6px; border-left: 4px solid; background: #fafafa; cursor: default;
+  }
+  .issues li[data-ids]:not([data-ids=""]) { cursor: pointer; }
+  .issues li.err { border-color: var(--err); background: #fef2f2; }
+  .issues li.warn { border-color: var(--warn); background: #fffbeb; }
+  .issues li.ok { border-color: var(--ok); background: #f0fdf4; }
+  .issues li.info { border-color: var(--info); background: #eff6ff; }
+  .issues small { display: block; color: var(--muted); }
+  .itemlist { display: flex; flex-direction: column; gap: 2px; }
+  .itemlist div { display: flex; gap: 6px; align-items: center; padding: 3px 6px; border-radius: 5px; cursor: pointer; }
+  .itemlist div:hover { background: #f3f4f6; }
+  .itemlist div.sel { background: #dbeafe; }
+  .itemlist small { margin-left: auto; color: var(--muted); }
+  .itemlist small.bad { color: var(--err); }
+  .op { border: 1px solid var(--line); border-radius: 6px; padding: 6px; margin: 6px 0; }
+  .checklist label { flex-direction: row; gap: 8px; align-items: flex-start; color: var(--text); margin: 6px 0; }
+  .checklist small { color: var(--muted); display: block; }
+  .norms p { margin: 6px 0; }
+  .norms small { color: var(--muted); }
+  .muted { color: var(--muted); }
+  .btns { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+  a { color: var(--accent); }
+  @media print {
+    body { display: block; height: auto; overflow: visible; }
+    header, aside, .viewbar { display: none !important; }
+    #stage { height: 95vh; background: #fff; }
+    #stats { position: static; border: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Планировщик мастерской</h1>
+  <button id="bUndo" title="Ctrl+Z">↶ Отменить</button>
+  <button id="bSave">💾 Сохранить в файл</button>
+  <button id="bLoad">📂 Открыть файл</button>
+  <button id="bPng">🖼 Картинка PNG</button>
+  <button id="bPrint">🖨 Печать</button>
+  <button id="bReset" class="danger">Сбросить к стартовому варианту</button>
+  <input type="file" id="fileIn" accept=".json,application/json" hidden>
+  <span class="hint">Перетаскивайте мышкой · <b>R</b> повернуть · <b>Del</b> удалить · <b>Ctrl+D</b> копия · стрелки двигают на 1 см (Shift — на 10) · <b>Alt</b> без привязки к сетке</span>
+</header>
+
+<aside class="left">
+  <h2>Добавить</h2>
+  <div class="palette" id="palette"></div>
+
+  <h2>Что стоит в плане</h2>
+  <div class="itemlist" id="itemList"></div>
+
+  <details open>
+    <summary>Помещение</summary>
+    <div class="row">
+      <label>Ширина мастерской, см<input type="number" data-room="w" min="50" step="1"></label>
+      <label>Глубина мастерской, см<input type="number" data-room="h" min="50" step="1"></label>
+    </div>
+    <div class="row">
+      <label>Высота потолка, см<input type="number" data-room="H" min="150" step="1"></label>
+      <label>Комната за стеклом, глубина, см<input type="number" data-room="out" min="0" step="1"></label>
+    </div>
+  </details>
+
+  <details>
+    <summary>Двери и окна</summary>
+    <div id="openings"></div>
+    <button id="bAddOp">+ Добавить дверь или окно</button>
+  </details>
+
+  <details open>
+    <summary>Параметры проверки</summary>
+    <div class="row">
+      <label>Работников в смене<input type="number" data-set="persons" min="1" step="1"></label>
+      <label>Тип работы
+        <select data-set="workClass">
+          <option value="12">Сидя, лёгкая (12 м³)</option>
+          <option value="15">Стоя (15 м³)</option>
+          <option value="18">Тяжёлая (18 м³)</option>
+        </select>
+      </label>
+    </div>
+    <div class="row">
+      <label>Главный проход, см<input type="number" data-set="passMin" min="40" step="5"></label>
+      <label>Подход к машине, см<input type="number" data-set="reachMin" min="40" step="5"></label>
+    </div>
+    <div class="row">
+      <label>Лимит одной линии, кВт<input type="number" data-set="circuitKW" min="0.5" step="0.1"></label>
+      <label>Шаг сетки, см<input type="number" data-set="snap" min="0.5" step="0.5"></label>
+    </div>
+  </details>
+</aside>
+
+<main id="stage">
+  <svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div class="viewbar">
+    <label class="inline"><input type="checkbox" data-view="showOutside"> комната за стеклом</label>
+    <label class="inline"><input type="checkbox" data-view="showZones"> зоны обслуживания</label>
+    <label class="inline"><input type="checkbox" data-view="showPath"> главный проход</label>
+    <label class="inline"><input type="checkbox" data-view="showReach"> где можно пройти</label>
+  </div>
+  <div id="stats"></div>
+</main>
+
+<aside class="right">
+  <div id="props"></div>
+  <h2>Проверки</h2>
+  <ul class="issues" id="issues"></ul>
+
+  <details open>
+    <summary>Чек-лист: гигиена и пожарная безопасность</summary>
+    <div class="checklist" id="checklist"></div>
+  </details>
+
+  <details>
+    <summary>Нормы, которые проверяются</summary>
+    <div class="norms">
+      <p><b>Проход для людей ≥ 1,1 м</b><br><small>NV 101/2005 Sb., příloha, bod 5.1 (komunikace pro pěší)</small></p>
+      <p><b>Свободная полоса для движения ≥ 1 м, оборудованием не сужать</b><br><small>NV 361/2007 Sb., § 48</small></p>
+      <p><b>Свободная площадь ≥ 2 м² на работника</b> (без оборудования и проходов)<br><small>NV 361/2007 Sb., § 48</small></p>
+      <p><b>Объём 12 / 15 / 18 м³ на работника</b> (сидя / стоя / тяжёлая работа)<br><small>NV 361/2007 Sb., § 47</small></p>
+      <p><b>Высота потолка:</b> до 20 м² — 2,5 м; до 50 м² — 2,6 м; 51–100 м² — 2,7 м; 101–2000 м² — 3,0 м<br><small>NV 361/2007 Sb., § 46</small></p>
+      <p><b>Туалет не может открываться прямо в помещение, где работают с продуктами</b><br><small>Nařízení (ES) 852/2004, příloha II, kap. I, bod 3</small></p>
+      <p><b>Путь эвакуации:</b> не уже 1 эвакуационной полосы (550 мм); дверь 800 мм считается за 1,5 полосы<br><small>ČSN 73 0802 / ČSN 73 0804</small></p>
+      <p><b>Огнетушители:</b> количество по vyhl. 23/2008 Sb., příloha 4; не должны сужать путь эвакуации<br><small>vyhl. 23/2008 Sb., § 13</small></p>
+      <p><b>Туалет:</b> 1 место на 10 человек, не дальше 120 м от рабочего места<br><small>NV 361/2007 Sb., § 54</small></p>
+      <p class="muted">Программа помогает с черновой планировкой. Окончательно планировку подтверждают специалист по пожарной безопасности (technik PO), по охране труда (BOZP) и санитарная служба (KHS) или инспекция по продуктам питания (SZPI).</p>
+    </div>
+  </details>
+</aside>
+
+<script>
+"use strict";
+
+const LS_KEY = "workshop-planner-v1";
+const GLASS = 6;   // толщина стеклянной стенки, см
+const WALL = 15;   // толщина капитальных стен на рисунке, см
+const CELL = 2.5;  // шаг сетки для расчёта проходов, см
+
+const PRESETS = [
+  { group: "Оборудование KADZAMA", key: "melanger", name: "Меланжер 35 кг", w: 68, d: 91, h: 110, kind: "floor", front: 70, kW: 2.2, color: "#a0703f", url: "https://kadzama.com/c/equipment/melanger-35-kg/" },
+  { group: "Оборудование KADZAMA", key: "crusher", name: "Дробилка с веялкой", w: 63, d: 56, h: 123, kind: "floor", front: 70, kW: 0.5, color: "#ca8a04", url: "https://kadzama.com/c/equipment/crusher-and-winnower-for-cocoa-beans/" },
+  { group: "Оборудование KADZAMA", key: "temper", name: "Темперирующая ванна 20 кг", w: 47, d: 54, h: 50, kind: "top", front: 0, kW: 0.3, color: "#0e7490", url: "https://kadzama.com/c/equipment/wheeled-chocolate-molding-machine/" },
+  { group: "Оборудование KADZAMA", key: "silk", name: "Mini SilkTemper", w: 21, d: 12.5, h: 13.5, kind: "top", front: 0, kW: 0.1, color: "#7c3aed", url: "https://kadzama.com/c/equipment/mini-incubator-for-cocoa-butter-crystals-easy-tempering-machine/" },
+  { group: "Оборудование KADZAMA", key: "vibro", name: "Вибростол", w: 66, d: 46, h: 30, kind: "top", front: 0, kW: 0.1, color: "#475569", url: "https://kadzama.com/c/equipment/vibrating-table/" },
+  { group: "Мебель и прочее", key: "table180", name: "Рабочий стол 180×60", w: 180, d: 60, h: 90, kind: "floor", surface: true, front: 60, kW: 0, color: "#cbd5e1" },
+  { group: "Мебель и прочее", key: "table120", name: "Стол 120×60", w: 120, d: 60, h: 90, kind: "floor", surface: true, front: 60, kW: 0, color: "#cbd5e1" },
+  { group: "Мебель и прочее", key: "fridge", name: "Холодильник", w: 60, d: 60, h: 185, kind: "floor", front: 60, kW: 0.2, color: "#93c5fd" },
+  { group: "Мебель и прочее", key: "shelf", name: "Стеллаж", w: 60, d: 40, h: 180, kind: "floor", front: 50, kW: 0, color: "#d6b98c" },
+  { group: "Мебель и прочее", key: "handwash", tag: "handwash", name: "Раковина для рук", w: 45, d: 35, h: 85, kind: "floor", front: 50, kW: 0, color: "#67e8f9" },
+  { group: "Мебель и прочее", key: "sink", tag: "sink", name: "Мойка для посуды", w: 80, d: 60, h: 90, kind: "floor", front: 60, kW: 0, color: "#22d3ee" },
+  { group: "Мебель и прочее", key: "dehum", name: "Осушитель воздуха", w: 35, d: 25, h: 55, kind: "floor", front: 0, kW: 0.3, color: "#a5b4fc" },
+  { group: "Мебель и прочее", key: "ext", tag: "extinguisher", name: "Огнетушитель", w: 20, d: 20, h: 60, kind: "wall", front: 0, kW: 0, color: "#ef4444" },
+  { group: "Мебель и прочее", key: "custom", name: "Своё оборудование", w: 50, d: 50, h: 90, kind: "floor", front: 60, kW: 0, color: "#9ca3af" },
+];
+
+const CHECKLIST = [
+  { id: "lobby", text: "Туалет не открывается прямо в мастерскую: между ними тамбур или отдельный вход", src: "852/2004, příloha II, kap. I, bod 3" },
+  { id: "handwash", text: "Раковина для рук в мастерской или у входа: горячая и холодная вода, мыло, одноразовые полотенца", src: "852/2004, příloha II, kap. I, bod 4" },
+  { id: "sink", text: "Отдельная мойка для посуды и деталей (чаша меланжера 50 л)", src: "852/2004, příloha II, kap. II, bod 2" },
+  { id: "surfaces", text: "Пол, стены и рабочие поверхности гладкие, моющиеся, непористые", src: "852/2004, příloha II, kap. II, bod 1" },
+  { id: "pests", text: "Сетки от насекомых на окнах, план борьбы с вредителями", src: "852/2004, příloha II, kap. II, bod 1 d)" },
+  { id: "climate", text: "Вентиляция или кондиционер; для шоколада около 18–20 °C и низкая влажность", src: "852/2004, příloha II, kap. I, bod 5; NV 361/2007 (микроклимат)" },
+  { id: "storage", text: "Бобы и сырьё хранятся отдельно от готовой продукции и не на полу", src: "852/2004, příloha II, kap. IX" },
+  { id: "haccp", text: "План HACCP и учёт партий (прослеживаемость)", src: "852/2004, čl. 5; 178/2002, čl. 18" },
+  { id: "szpi", text: "Регистрация производства до начала работы (SZPI)", src: "852/2004, čl. 6; zákon 110/1997 Sb." },
+  { id: "zdrav", text: "Медицинская книжка (zdravotní průkaz) у работника", src: "zákon 258/2000 Sb., § 19" },
+  { id: "ext", text: "Огнетушитель на видном и доступном месте, не сужает проход", src: "vyhl. 23/2008 Sb., § 13; vyhl. 246/2001 Sb." },
+  { id: "elec", text: "Отдельная линия для меланжера, розетки IP44 рядом с водой, ревизия электрики", src: "ČSN 33 2000, revize elektro" },
+  { id: "escape", text: "Путь к выходу всегда свободен, дверь не уже 80 см", src: "ČSN 73 0802 / 73 0804" },
+  { id: "firstaid", text: "Аптечка", src: "zákoník práce, § 102" },
+];
+
+function uid() { return Math.random().toString(36).slice(2, 9); }
+function fromPreset(key, x, y, rot = 0) {
+  const p = PRESETS.find(p => p.key === key);
+  const { group, key: _k, ...rest } = p;
+  return { id: uid(), preset: key, ...rest, x, y, rot };
+}
+
+function defaultState() {
+  return {
+    room: { w: 265, h: 250, H: 300, out: 290 },
+    settings: { persons: 1, workClass: 15, passMin: 100, reachMin: 60, circuitKW: 3.6, snap: 5 },
+    view: { showOutside: true, showZones: true, showPath: true, showReach: false },
+    openings: [
+      { id: uid(), role: "window", kind: "window", wall: "top", off: 85, w: 105 },
+      { id: uid(), role: "toilet", kind: "door", wall: "right", off: 40, w: 70, swing: "out", hinge: "a" },
+      { id: uid(), role: "entry", kind: "door", wall: "bottom", off: 90, w: 85, swing: "out", hinge: "a" },
+    ],
+    items: [
+      fromPreset("table180", 0, 0, 0),
+      fromPreset("temper", 6, 3, 0),
+      fromPreset("silk", 60, 20, 0),
+      fromPreset("vibro", 108, 7, 0),
+      fromPreset("melanger", 0, 120, 270),
+      fromPreset("shelf", 0, 190, 270),
+      fromPreset("handwash", 210, 0, 0),
+      fromPreset("fridge", 205, 190, 90),
+      fromPreset("crusher", 20, 290, 0),
+      fromPreset("ext", 240, 262, 0),
+    ],
+    checklist: {},
+  };
+}
+
+let S = load() || defaultState();
+let sel = null;
+let hist = [];
+let drag = null;
+let propsFor = undefined;
+let lastA = null;
+
+function load() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? normalize(JSON.parse(raw)) : null;
+  } catch { return null; }
+}
+function normalize(s) {
+  const d = defaultState();
+  if (!s || !Array.isArray(s.items)) return null;
+  return {
+    room: { ...d.room, ...s.room },
+    settings: { ...d.settings, ...s.settings },
+    view: { ...d.view, ...s.view },
+    openings: Array.isArray(s.openings) ? s.openings : d.openings,
+    items: s.items,
+    checklist: s.checklist || {},
+  };
+}
+function save() { localStorage.setItem(LS_KEY, JSON.stringify(S)); }
+function pushHist() { hist.push(JSON.stringify(S)); if (hist.length > 100) hist.shift(); }
+function undo() {
+  if (!hist.length) return;
+  S = JSON.parse(hist.pop());
+  if (sel && !S.items.find(i => i.id === sel)) sel = null;
+  propsFor = undefined;
+  buildSettings(); buildOpenings(); buildChecklist(); render(); save();
+}
+
+// ---------- геометрия ----------
+const EPS = 0.01;
+function fp(it) { const r = it.rot % 180 !== 0; return { x: it.x, y: it.y, w: r ? it.d : it.w, h: r ? it.w : it.d }; }
+function svc(it) {
+  if (it.kind !== "floor" || !(it.front > 0)) return null;
+  const f = fp(it), c = it.front;
+  switch (it.rot) {
+    case 0: return { x: f.x, y: f.y + f.h, w: f.w, h: c };
+    case 180: return { x: f.x, y: f.y - c, w: f.w, h: c };
+    case 90: return { x: f.x - c, y: f.y, w: c, h: f.h };
+    default: return { x: f.x + f.w, y: f.y, w: c, h: f.h };
+  }
+}
+function frontEdge(it) {
+  const f = fp(it);
+  switch (it.rot) {
+    case 0: return [f.x, f.y + f.h, f.x + f.w, f.y + f.h];
+    case 180: return [f.x, f.y, f.x + f.w, f.y];
+    case 90: return [f.x, f.y, f.x, f.y + f.h];
+    default: return [f.x + f.w, f.y, f.x + f.w, f.y + f.h];
+  }
+}
+function ov(a, b) { return a.x < b.x + b.w - EPS && b.x < a.x + a.w - EPS && a.y < b.y + b.h - EPS && b.y < a.y + a.h - EPS; }
+function inside(a, b) { return a.x >= b.x - EPS && a.y >= b.y - EPS && a.x + a.w <= b.x + b.w + EPS && a.y + a.h <= b.y + b.h + EPS; }
+function area(r) { return r.w * r.h; }
+function rectFrom(pts) {
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const x = Math.min(...xs), y = Math.min(...ys);
+  return { x, y, w: Math.max(...xs) - x, h: Math.max(...ys) - y };
+}
+function WS() { return { x: 0, y: 0, w: S.room.w, h: S.room.h }; }
+function OUT() { return { x: 0, y: S.room.h + GLASS, w: S.room.w, h: S.room.out }; }
+function regionOf(it) {
+  const f = fp(it);
+  if (inside(f, WS())) return "ws";
+  if (S.room.out > 0 && inside(f, OUT())) return "out";
+  return null;
+}
+
+function wallGeom(wall) {
+  const R = S.room;
+  switch (wall) {
+    case "top": return { s: [0, 0], u: [1, 0], n: [0, 1], len: R.w, t: WALL };
+    case "bottom": return { s: [0, R.h], u: [1, 0], n: [0, -1], len: R.w, t: GLASS };
+    case "left": return { s: [0, 0], u: [0, 1], n: [1, 0], len: R.h, t: WALL };
+    default: return { s: [R.w, 0], u: [0, 1], n: [-1, 0], len: R.h, t: WALL };
+  }
+}
+function opPts(op) {
+  const g = wallGeom(op.wall);
+  const a = [g.s[0] + g.u[0] * op.off, g.s[1] + g.u[1] * op.off];
+  const b = [a[0] + g.u[0] * op.w, a[1] + g.u[1] * op.w];
+  return { g, a, b };
+}
+function swingVec(op) {
+  const { g } = opPts(op);
+  if (op.swing === "out") {
+    const n = [-g.n[0], -g.n[1]];
+    return { n, shift: [n[0] * g.t, n[1] * g.t] };
+  }
+  return { n: g.n, shift: [0, 0] };
+}
+function doorZone(op) {
+  if (op.kind !== "door" || op.swing === "slide") return null;
+  const sv = swingVec(op); if (!sv) return null;
+  const { a, b } = opPts(op);
+  const A = [a[0] + sv.shift[0], a[1] + sv.shift[1]], B = [b[0] + sv.shift[0], b[1] + sv.shift[1]];
+  return rectFrom([A, B, [A[0] + sv.n[0] * op.w, A[1] + sv.n[1] * op.w], [B[0] + sv.n[0] * op.w, B[1] + sv.n[1] * op.w]]);
+}
+function approachZone(op) {
+  const { g, a, b } = opPts(op), d = 50;
+  return rectFrom([a, b, [a[0] + g.n[0] * d, a[1] + g.n[1] * d], [b[0] + g.n[0] * d, b[1] + g.n[1] * d]]);
+}
+
+// ---------- расчёт проходов по сетке ----------
+function gridAnalysis(wsFloor) {
+  const R = S.room, c = CELL;
+  const nx = Math.ceil(R.w / c), ny = Math.ceil(R.h / c), W = nx + 2, H = ny + 2, N = W * H;
+  const occ = new Uint8Array(N), appr = new Int16Array(N).fill(-1);
+  for (let x = 0; x < W; x++) { occ[x] = 1; occ[(H - 1) * W + x] = 1; }
+  for (let y = 0; y < H; y++) { occ[y * W] = 1; occ[y * W + W - 1] = 1; }
+
+  const cellsIn = (r, fn) => {
+    const i0 = Math.max(0, Math.ceil(r.x / c - 0.5)), i1 = Math.min(nx - 1, Math.floor((r.x + r.w) / c - 0.5));
+    const j0 = Math.max(0, Math.ceil(r.y / c - 0.5)), j1 = Math.min(ny - 1, Math.floor((r.y + r.h) / c - 0.5));
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) fn((j + 1) * W + i + 1);
+  };
+
+  S.openings.forEach((op, idx) => {
+    if (op.kind !== "door") return;
+    const n = (op.wall === "top" || op.wall === "bottom") ? nx : ny;
+    for (let t = 0; t < n; t++) {
+      const cc = (t + 0.5) * c;
+      if (cc < op.off || cc > op.off + op.w) continue;
+      let k;
+      if (op.wall === "top") k = t + 1;
+      else if (op.wall === "bottom") k = (H - 1) * W + t + 1;
+      else if (op.wall === "left") k = (t + 1) * W;
+      else k = (t + 1) * W + W - 1;
+      occ[k] = 0; appr[k] = idx;
+    }
+    cellsIn(approachZone(op), k => { if (appr[k] < 0) appr[k] = idx; });
+  });
+  for (const f of wsFloor) cellsIn(f, k => { occ[k] = 1; });
+
+  const d = new Float32Array(N);
+  for (let k = 0; k < N; k++) d[k] = occ[k] ? 0 : 1e6;
+  const D2 = Math.SQRT2;
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+    const k = y * W + x; if (!d[k]) continue; let v = d[k];
+    if (x > 0) v = Math.min(v, d[k - 1] + 1);
+    if (y > 0) {
+      v = Math.min(v, d[k - W] + 1);
+      if (x > 0) v = Math.min(v, d[k - W - 1] + D2);
+      if (x < W - 1) v = Math.min(v, d[k - W + 1] + D2);
+    }
+    d[k] = v;
+  }
+  for (let y = H - 1; y >= 0; y--) for (let x = W - 1; x >= 0; x--) {
+    const k = y * W + x; if (!d[k]) continue; let v = d[k];
+    if (x < W - 1) v = Math.min(v, d[k + 1] + 1);
+    if (y < H - 1) {
+      v = Math.min(v, d[k + W] + 1);
+      if (x < W - 1) v = Math.min(v, d[k + W + 1] + D2);
+      if (x > 0) v = Math.min(v, d[k + W - 1] + D2);
+    }
+    d[k] = v;
+  }
+
+  const center = k => [((k % W) - 0.5) * c, (Math.floor(k / W) - 0.5) * c];
+
+  // поиск пути шириной не меньше reqCm от двери startIdx до клеток, где isTarget(k) === true
+  function bfs(startIdx, isTarget, reqCm) {
+    const m = (reqCm / c + 1) / 2 - 0.75;
+    const ok = k => !occ[k] && (d[k] >= m || appr[k] >= 0);
+    const prev = new Int32Array(N).fill(-2);
+    const q = new Int32Array(N); let qh = 0, qt = 0;
+    for (let k = 0; k < N; k++) if (appr[k] === startIdx && ok(k)) { prev[k] = -1; q[qt++] = k; }
+    const nb = [-1, 1, -W, W, -W - 1, -W + 1, W - 1, W + 1];
+    while (qh < qt) {
+      const k = q[qh++];
+      if (isTarget(k)) {
+        const path = []; let p = k;
+        while (p >= 0) { path.push(center(p)); p = prev[p]; }
+        return { found: true, path: simplify(path.reverse()), prev };
+      }
+      const x = k % W;
+      for (let t = 0; t < 8; t++) {
+        const o = nb[t], j = k + o;
+        if (j < 0 || j >= N) continue;
+        const jx = j % W;
+        if (Math.abs(jx - x) > 1) continue;
+        if (prev[j] !== -2 || !ok(j)) continue;
+        if (t >= 4) { const dx = jx - x, dy = (o - dx) / W; if (!ok(k + dx) || !ok(k + dy * W)) continue; }
+        prev[j] = k; q[qt++] = j;
+      }
+    }
+    return { found: false, path: [], prev };
+  }
+  function markRect(r) {
+    const m = new Uint8Array(N); cellsIn(r, k => { m[k] = 1; }); return m;
+  }
+  return { bfs, markRect, appr, W, H, N, c, center };
+}
+function simplify(pts) {
+  if (pts.length < 3) return pts;
+  const out = [pts[0]];
+  for (let i = 1; i < pts.length - 1; i++) {
+    const a = out[out.length - 1], b = pts[i], n = pts[i + 1];
+    const cr = (b[0] - a[0]) * (n[1] - a[1]) - (b[1] - a[1]) * (n[0] - a[0]);
+    if (Math.abs(cr) > 1e-6) out.push(b);
+  }
+  out.push(pts[pts.length - 1]);
+  return out;
+}
+
+// ---------- проверки ----------
+const ROLE_NAMES = { entry: "вход в мастерскую", toilet: "дверь в туалет", door: "дверь", window: "окно" };
+function analyze() {
+  const R = S.room, st = S.settings, issues = [], bad = {};
+  const mark = (id, lvl) => { if (bad[id] !== "err") bad[id] = lvl; };
+  const add = (lvl, text, ids = [], src = "") => { issues.push({ lvl, text, ids, src }); ids.forEach(id => mark(id, lvl)); };
+  const regs = {};
+  S.items.forEach(it => { regs[it.id] = regionOf(it); });
+  const floor = S.items.filter(i => i.kind === "floor");
+  const tops = S.items.filter(i => i.kind === "top");
+  const wsFloor = floor.filter(i => regs[i.id] === "ws");
+
+  for (const it of S.items) if (!regs[it.id]) add("err", `«${it.name}» пересекает стену или стоит за пределами помещения`, [it.id]);
+
+  for (let i = 0; i < floor.length; i++) for (let j = i + 1; j < floor.length; j++) {
+    const a = floor[i], b = floor[j];
+    if (ov(fp(a), fp(b))) add("err", `«${a.name}» и «${b.name}» наезжают друг на друга`, [a.id, b.id]);
+  }
+  for (const a of floor) {
+    const z = svc(a); if (!z || !regs[a.id]) continue;
+    const reg = regs[a.id] === "ws" ? WS() : OUT();
+    const blockers = floor.filter(b => b !== a && ov(z, fp(b)));
+    if (blockers.length) add("warn", `Перед «${a.name}» нет ${a.front} см свободного места: мешает ${blockers.map(b => "«" + b.name + "»").join(", ")}`, [a.id, ...blockers.map(b => b.id)]);
+    else if (!inside(z, reg)) add("warn", `Перед «${a.name}» нет ${a.front} см свободного места: мешает стена`, [a.id]);
+  }
+
+  const surfaces = floor.filter(i => i.surface);
+  for (const t of tops) {
+    if (!surfaces.some(s => inside(fp(t), fp(s)))) add("warn", `«${t.name}» стоит на полу. Поставьте на стол целиком`, [t.id]);
+  }
+  for (let i = 0; i < tops.length; i++) for (let j = i + 1; j < tops.length; j++) {
+    if (ov(fp(tops[i]), fp(tops[j]))) add("err", `«${tops[i].name}» и «${tops[j].name}» наезжают друг на друга на столе`, [tops[i].id, tops[j].id]);
+  }
+
+  S.openings.forEach(op => {
+    const z = doorZone(op); if (!z) return;
+    const name = ROLE_NAMES[op.role] || "дверь";
+    const hit = floor.filter(b => ov(z, fp(b)));
+    if (hit.length) add("err", `Не открыть ${name}: мешает ${hit.map(b => "«" + b.name + "»").join(", ")}`, hit.map(b => b.id));
+    const zs = floor.filter(b => { const s = svc(b); return s && ov(z, s); });
+    if (zs.length) add("warn", `${name[0].toUpperCase() + name.slice(1)} открывается туда, где стоит работник (${zs.map(b => "«" + b.name + "»").join(", ")})`, zs.map(b => b.id));
+  });
+
+  const entryIdx = S.openings.findIndex(o => o.role === "entry" && o.kind === "door");
+  const entry = S.openings[entryIdx];
+  if (!entry) add("err", "Нет входной двери в мастерскую. Добавьте её в разделе «Двери и окна»");
+  else {
+    if (entry.w < 80) add("warn", `Дверь в мастерскую ${entry.w} см. Для пути эвакуации нужно не меньше 80 см`, [], "ČSN 73 0802");
+    else add("ok", `Дверь в мастерскую ${entry.w} см — не меньше 80 см`, [], "ČSN 73 0802");
+    const tooBig = wsFloor.filter(i => Math.min(i.w, i.d) > entry.w - 2);
+    if (tooBig.length) add("warn", `Через дверь ${entry.w} см не пронести: ${tooBig.map(b => "«" + b.name + "»").join(", ")}`, tooBig.map(b => b.id));
+  }
+
+  const G = gridAnalysis(wsFloor.map(fp));
+  const paths = { main: [], reach: {}, reachMask: null };
+  if (entry) {
+    S.openings.forEach((op, idx) => {
+      if (op.kind !== "door" || idx === entryIdx) return;
+      const r = G.bfs(entryIdx, k => G.appr[k] === idx, st.passMin);
+      const name = ROLE_NAMES[op.role] || "дверь";
+      if (r.found) { paths.main.push(r.path); add("ok", `Проход шириной ${st.passMin} см от входа до «${name}» есть`, [], "NV 361/2007 § 48; NV 101/2005"); }
+      else add("err", `Нет прохода шириной ${st.passMin} см от входа до «${name}»`, [], "NV 361/2007 § 48; NV 101/2005");
+    });
+    for (const it of wsFloor) {
+      const z = svc(it); if (!z) continue;
+      const m = G.markRect(z);
+      const r = G.bfs(entryIdx, k => m[k] === 1, st.reachMin);
+      if (r.found) paths.reach[it.id] = r.path;
+      else add("err", `К «${it.name}» не подойти: нужен проход не уже ${st.reachMin} см`, [it.id]);
+    }
+    if (S.view.showReach) paths.reachMask = { prev: G.bfs(entryIdx, () => false, st.reachMin).prev, G };
+  }
+
+  const wsArea = R.w * R.h;
+  const occArea = wsFloor.reduce((s, i) => s + area(fp(i)), 0);
+  const free = (wsArea - occArea) / 1e4;
+  const needFree = 2 * st.persons;
+  add(free >= needFree ? "ok" : "err", `Свободная площадь ${fmt(free)} м², нужно не меньше ${fmt(needFree, 1)} м²`, [], "NV 361/2007 § 48");
+
+  const vol = wsArea * R.H / 1e6, needVol = st.workClass * st.persons;
+  add(vol >= needVol ? "ok" : "err", `Объём ${fmt(vol, 1)} м³, нужно не меньше ${needVol} м³`, [], "NV 361/2007 § 47");
+
+  const a2 = wsArea / 1e4;
+  const needH = a2 <= 20 ? 250 : a2 <= 50 ? 260 : a2 <= 100 ? 270 : a2 <= 2000 ? 300 : 325;
+  add(R.H >= needH ? "ok" : "err", `Высота ${fmt(R.H / 100)} м, для площади ${fmt(a2, 1)} м² нужно не меньше ${fmt(needH / 100)} м`, [], "NV 361/2007 § 46");
+
+  const kW = S.items.filter(i => regs[i.id] === "ws").reduce((s, i) => s + (+i.kW || 0), 0);
+  if (kW > st.circuitKW) add("warn", `Мощность в мастерской ${fmt(kW, 1)} кВт, а одна линия выдерживает около ${fmt(st.circuitKW, 1)} кВт. Нужно несколько линий`);
+  const heavy = S.items.filter(i => (+i.kW || 0) >= 2);
+  if (heavy.length) add("info", `${heavy.map(b => "«" + b.name + "»").join(", ")}: больше 2 кВт и долго работает. Нужна отдельная линия`, heavy.map(b => b.id));
+
+  const wsItems = S.items.filter(i => regs[i.id] === "ws");
+  if (!wsItems.some(i => i.tag === "handwash")) add("warn", "В мастерской нет раковины для рук", [], "852/2004, příloha II, kap. I, bod 4");
+  if (!S.items.some(i => i.tag === "extinguisher")) add("warn", "Нет огнетушителя", [], "vyhl. 23/2008 Sb.");
+  if (S.openings.some(o => o.role === "toilet") && !S.checklist.lobby)
+    add("err", "Туалет открывается прямо в мастерскую. Нужен тамбур или перенос двери. Если тамбур уже есть, отметьте это в чек-листе", [], "852/2004, příloha II, kap. I, bod 3");
+
+  const order = { err: 0, warn: 1, info: 2, ok: 3 };
+  issues.sort((a, b) => order[a.lvl] - order[b.lvl]);
+  return { issues, bad, regs, paths, stats: { wsArea: a2, free, vol, kW } };
+}
+function fmt(n, dg = 2) { return (+n).toFixed(dg).replace(".", ","); }
+function esc(s) { return String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])); }
+
+// ---------- рисование ----------
+const svg = document.getElementById("svg");
+function viewBox() {
+  const R = S.room;
+  const bottom = S.view.showOutside && R.out > 0 ? R.h + GLASS + R.out + WALL : R.h + GLASS + 10;
+  return [-WALL - 45, -WALL - 70, R.w + 2 * WALL + 150, bottom + WALL + 70 + 20];
+}
+function wrap(text, maxChars) {
+  const words = String(text).split(/\s+/), lines = []; let cur = "";
+  for (const w of words) {
+    if (!cur) cur = w;
+    else if ((cur + " " + w).length <= maxChars) cur += " " + w;
+    else { lines.push(cur); cur = w; }
+  }
+  if (cur) lines.push(cur);
+  return lines;
+}
+function render() {
+  const A = analyze(); lastA = A;
+  const R = S.room, vb = viewBox();
+  svg.setAttribute("viewBox", vb.join(" "));
+  let h = `<defs>
+    <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#3b82f6" stroke-width="1.2" opacity=".55"/></pattern>
+    <pattern id="hatchR" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <line x1="0" y1="0" x2="0" y2="6" stroke="#dc2626" stroke-width="1.4" opacity=".6"/></pattern>
+    <pattern id="grid10" width="10" height="10" patternUnits="userSpaceOnUse">
+      <path d="M10 0H0V10" fill="none" stroke="#eef0f3" stroke-width=".6"/></pattern>
+    <pattern id="grid50" width="50" height="50" patternUnits="userSpaceOnUse">
+      <rect width="50" height="50" fill="url(#grid10)"/><path d="M50 0H0V50" fill="none" stroke="#dfe3e8" stroke-width=".8"/></pattern>
+  </defs>
+  <style>
+    text{font-family:system-ui,Segoe UI,sans-serif}
+    .lbl{paint-order:stroke;stroke:#fff;stroke-width:2.2px;stroke-linejoin:round}
+  </style>
+  <rect x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}" fill="#e9ebef" id="bg"/>`;
+
+  const showOut = S.view.showOutside && R.out > 0;
+  const totalH = showOut ? R.h + GLASS + R.out : R.h;
+  h += `<rect x="${-WALL}" y="${-WALL}" width="${R.w + 2 * WALL}" height="${totalH + 2 * WALL}" fill="#4b5563"/>`;
+  h += `<rect x="0" y="0" width="${R.w}" height="${R.h}" fill="#fff"/><rect x="0" y="0" width="${R.w}" height="${R.h}" fill="url(#grid50)"/>`;
+  if (showOut) {
+    const o = OUT();
+    h += `<rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" fill="#f7f7f8"/><rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" fill="url(#grid50)" opacity=".6"/>`;
+    h += `<text x="${R.w / 2}" y="${o.y + o.h - 10}" text-anchor="middle" font-size="9" fill="#9ca3af">Остальная часть комнаты (за стеклом)</text>`;
+  }
+  h += `<rect x="0" y="${R.h}" width="${R.w}" height="${GLASS}" fill="#bae6fd" stroke="#38bdf8" stroke-width=".8"/>`;
+  if (!showOut) h += `<rect x="${-WALL}" y="${R.h + GLASS}" width="${R.w + 2 * WALL}" height="10" fill="#e9ebef"/>`;
+
+  // размеры помещения
+  h += dimLine(0, -WALL - 14, R.w, -WALL - 14, `${R.w} см`, true);
+  h += dimLine(-WALL - 14, 0, -WALL - 14, R.h, `${R.h} см`, true);
+  h += `<text x="${R.w / 2}" y="${-WALL - 26}" text-anchor="middle" font-size="9" font-weight="600" fill="#374151">Мастерская ${fmt(R.w / 100)} × ${fmt(R.h / 100)} м = ${fmt(A.stats.wsArea, 1)} м²</text>`;
+
+  // двери и окна
+  S.openings.forEach(op => { h += drawOpening(op); });
+
+  // где можно пройти
+  if (A.paths.reachMask) {
+    const { prev, G } = A.paths.reachMask; const c = G.c;
+    for (let y = 1; y < G.H - 1; y++) {
+      let run = -1;
+      for (let x = 1; x <= G.W - 1; x++) {
+        const k = y * G.W + x, on = x < G.W - 1 && prev[k] !== -2;
+        if (on && run < 0) run = x;
+        if (!on && run >= 0) { h += `<rect x="${(run - 1) * c}" y="${(y - 1) * c}" width="${(x - run) * c}" height="${c}" fill="#22c55e" opacity=".16"/>`; run = -1; }
+      }
+    }
+  }
+
+  // главный проход
+  if (S.view.showPath) for (const p of A.paths.main) {
+    const d = p.map(pt => pt.join(",")).join(" ");
+    h += `<polyline points="${d}" fill="none" stroke="#22c55e" stroke-opacity=".18" stroke-width="${S.settings.passMin}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    h += `<polyline points="${d}" fill="none" stroke="#16a34a" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+  }
+  if (sel && A.paths.reach[sel]) {
+    const d = A.paths.reach[sel].map(pt => pt.join(",")).join(" ");
+    h += `<polyline points="${d}" fill="none" stroke="#f59e0b" stroke-opacity=".18" stroke-width="${S.settings.reachMin}" stroke-linecap="round" stroke-linejoin="round"/>`;
+    h += `<polyline points="${d}" fill="none" stroke="#d97706" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+  }
+
+  // зоны обслуживания
+  if (S.view.showZones) for (const it of S.items) {
+    const z = svc(it); if (!z) continue;
+    const isBad = A.bad[it.id] && A.issues.some(i => i.ids.includes(it.id) && /места|подойти/.test(i.text));
+    h += `<rect x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" fill="url(#${isBad ? "hatchR" : "hatch"})" stroke="${isBad ? "#dc2626" : "#60a5fa"}" stroke-width=".6" stroke-dasharray="3 2" pointer-events="none"/>`;
+  }
+
+  // предметы: сначала напольные, потом настольные и настенные
+  const orderK = { floor: 0, top: 1, wall: 2 };
+  const items = [...S.items].sort((a, b) => orderK[a.kind] - orderK[b.kind]);
+  for (const it of items) h += drawItem(it, A);
+
+  // размеры до соседей для выбранного
+  const si = S.items.find(i => i.id === sel);
+  if (si) h += drawDims(si, A);
+
+  svg.innerHTML = h;
+  renderIssues(A); renderStats(A); renderList(A); renderProps();
+}
+function dimLine(x1, y1, x2, y2, label, ticks) {
+  const mx = (x1 + x2) / 2, my = (y1 + y2) / 2, vert = Math.abs(x1 - x2) < 0.01;
+  let s = `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#374151" stroke-width=".7"/>`;
+  if (ticks) {
+    const t = 3;
+    s += vert
+      ? `<line x1="${x1 - t}" y1="${y1}" x2="${x1 + t}" y2="${y1}" stroke="#374151" stroke-width=".7"/><line x1="${x2 - t}" y1="${y2}" x2="${x2 + t}" y2="${y2}" stroke="#374151" stroke-width=".7"/>`
+      : `<line x1="${x1}" y1="${y1 - t}" x2="${x1}" y2="${y1 + t}" stroke="#374151" stroke-width=".7"/><line x1="${x2}" y1="${y2 - t}" x2="${x2}" y2="${y2 + t}" stroke="#374151" stroke-width=".7"/>`;
+  }
+  s += vert
+    ? `<text x="${mx - 3}" y="${my}" font-size="7" text-anchor="middle" fill="#374151" class="lbl" transform="rotate(-90 ${mx - 3} ${my})">${label}</text>`
+    : `<text x="${mx}" y="${my - 2.5}" font-size="7" text-anchor="middle" fill="#374151" class="lbl">${label}</text>`;
+  return s;
+}
+function drawOpening(op) {
+  const { g, a, b } = opPts(op);
+  const gap = rectFrom([a, b, [a[0] - g.n[0] * g.t, a[1] - g.n[1] * g.t], [b[0] - g.n[0] * g.t, b[1] - g.n[1] * g.t]]);
+  if (op.kind === "window") {
+    const m1 = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    const horiz = op.wall === "top" || op.wall === "bottom";
+    let s = `<rect x="${gap.x}" y="${gap.y}" width="${gap.w}" height="${gap.h}" fill="#e0f2fe" stroke="#0ea5e9" stroke-width=".8"/>`;
+    s += horiz
+      ? `<line x1="${gap.x}" y1="${gap.y + gap.h / 2}" x2="${gap.x + gap.w}" y2="${gap.y + gap.h / 2}" stroke="#0ea5e9" stroke-width=".8"/>`
+      : `<line x1="${gap.x + gap.w / 2}" y1="${gap.y}" x2="${gap.x + gap.w / 2}" y2="${gap.y + gap.h}" stroke="#0ea5e9" stroke-width=".8"/>`;
+    const lx = horiz ? m1[0] : (op.wall === "left" ? -WALL - 4 : S.room.w + WALL + 4);
+    const ly = horiz ? (op.wall === "top" ? -WALL - 3 : m1[1] + 14) : m1[1];
+    s += `<text x="${lx}" y="${ly}" font-size="6.5" text-anchor="${horiz ? "middle" : op.wall === "left" ? "end" : "start"}" fill="#0369a1">окно ${op.w}</text>`;
+    return s;
+  }
+  let s = `<rect x="${gap.x}" y="${gap.y}" width="${gap.w}" height="${gap.h}" fill="${op.wall === "bottom" ? "#fff" : "#fff"}"/>`;
+  const color = op.role === "entry" ? "#16a34a" : op.role === "toilet" ? "#b45309" : "#374151";
+  if (op.swing === "slide") {
+    const off = 3;
+    s += `<line x1="${a[0] - g.n[0] * off}" y1="${a[1] - g.n[1] * off}" x2="${b[0] - g.n[0] * off}" y2="${b[1] - g.n[1] * off}" stroke="${color}" stroke-width="2"/>`;
+  } else {
+    const sv = swingVec(op) || { n: g.n, shift: [0, 0] };
+    const sh = sv.shift;
+    const P0 = (op.hinge === "b" ? b : a).map((v, i) => v + sh[i]);
+    const P1 = (op.hinge === "b" ? a : b).map((v, i) => v + sh[i]);
+    const L = [P0[0] + sv.n[0] * op.w, P0[1] + sv.n[1] * op.w];
+    const v1 = [L[0] - P0[0], L[1] - P0[1]], v2 = [P1[0] - P0[0], P1[1] - P0[1]];
+    const sweep = v1[0] * v2[1] - v1[1] * v2[0] > 0 ? 1 : 0;
+    s += `<line x1="${P0[0]}" y1="${P0[1]}" x2="${L[0]}" y2="${L[1]}" stroke="${color}" stroke-width="1.6"/>`;
+    s += `<path d="M${L[0]} ${L[1]} A${op.w} ${op.w} 0 0 ${sweep} ${P1[0]} ${P1[1]}" fill="none" stroke="${color}" stroke-width=".7" stroke-dasharray="3 2"/>`;
+  }
+  const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+  const name = op.role === "entry" ? `вход ${op.w}` : op.role === "toilet" ? `WC ${op.w}` : `дверь ${op.w}`;
+  let lx = mid[0], ly = mid[1], anchor = "middle";
+  const outExtra = op.swing === "out" ? op.w : 0;
+  if (op.wall === "right") { lx = S.room.w + WALL + 4 + outExtra; anchor = "start"; }
+  else if (op.wall === "left") { lx = -WALL - 4 - outExtra; anchor = "end"; }
+  else if (op.wall === "top") ly = -WALL - 3 - outExtra;
+  else ly = S.room.h + GLASS + outExtra + 9;
+  s += `<text x="${lx}" y="${ly}" font-size="7" font-weight="600" text-anchor="${anchor}" fill="${color}" class="lbl">${name}</text>`;
+  if (op.role === "toilet" && op.wall === "right") {
+    s += `<text x="${lx}" y="${op.off + op.w / 2 + 9}" font-size="6" fill="#92400e">туалет</text>`;
+  }
+  return s;
+}
+function drawItem(it, A) {
+  const f = fp(it), isSel = it.id === sel, b = A.bad[it.id];
+  const stroke = b === "err" ? "#dc2626" : b === "warn" ? "#d97706" : "#1f2937";
+  if (it.kind === "wall") {
+    const cx = f.x + f.w / 2, cy = f.y + f.h / 2, r = Math.min(f.w, f.h) / 2;
+    return `<g data-id="${it.id}" style="cursor:move">
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="${it.color}" stroke="${isSel ? "#2563eb" : stroke}" stroke-width="${isSel ? 2 : 1}"/>
+      <text x="${cx}" y="${cy + 2.5}" font-size="7" text-anchor="middle" fill="#fff" font-weight="700" pointer-events="none">${it.tag === "extinguisher" ? "PHP" : "•"}</text>
+      <text x="${cx}" y="${f.y - 2}" font-size="6" text-anchor="middle" fill="#7f1d1d" class="lbl" pointer-events="none">${esc(it.name)}</text>
+    </g>`;
+  }
+  const dimTxt = `${it.w}×${it.d}${it.h ? "×" + it.h : ""}`;
+  const fe = frontEdge(it);
+  const op = it.kind === "top" ? 0.9 : 0.75;
+  let s = `<g data-id="${it.id}" style="cursor:move">
+    <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="1.5" fill="${it.color}" fill-opacity="${op}" stroke="${isSel ? "#2563eb" : stroke}" stroke-width="${isSel ? 2 : b ? 1.6 : 0.8}"/>`;
+  if (it.kind === "floor" && it.front > 0) s += `<line x1="${fe[0]}" y1="${fe[1]}" x2="${fe[2]}" y2="${fe[3]}" stroke="#111827" stroke-width="2.2" pointer-events="none"/>`;
+  if (childrenOf(it).length) {
+    s += `<text x="${f.x + 3}" y="${f.y + f.h - 4}" font-size="5.5" fill="#374151" class="lbl" pointer-events="none">${esc(it.name)} · ${dimTxt}</text></g>`;
+    return s;
+  }
+  let fs = Math.max(4, Math.min(8, Math.min(f.w, f.h) / 4.5));
+  const longest = Math.max(...String(it.name).split(/\s+/).map(w => w.length));
+  fs = Math.max(3.5, Math.min(fs, (f.w * 0.92) / (longest * 0.58)));
+  const lines = wrap(it.name, Math.max(4, Math.floor(f.w / (fs * 0.58))));
+  const total = lines.length + 1, cy = f.y + f.h / 2 - (total - 1) * fs * 0.6;
+  lines.forEach((ln, i) => {
+    s += `<text x="${f.x + f.w / 2}" y="${cy + i * fs * 1.15 + fs * 0.35}" font-size="${fs}" font-weight="600" text-anchor="middle" fill="#111827" class="lbl" pointer-events="none">${esc(ln)}</text>`;
+  });
+  s += `<text x="${f.x + f.w / 2}" y="${cy + lines.length * fs * 1.15 + fs * 0.3}" font-size="${fs * 0.8}" text-anchor="middle" fill="#374151" class="lbl" pointer-events="none">${dimTxt}</text>`;
+  s += `</g>`;
+  return s;
+}
+function drawDims(it, A) {
+  if (it.kind === "wall") return "";
+  const reg = A.regs[it.id]; if (!reg) return "";
+  const f = fp(it);
+  let others, R;
+  if (it.kind === "top") {
+    const surf = S.items.find(s => s.surface && inside(f, fp(s)));
+    if (!surf) return "";
+    R = fp(surf);
+    others = S.items.filter(o => o !== it && o.kind === "top" && inside(fp(o), R)).map(fp);
+  } else {
+    R = reg === "ws" ? WS() : OUT();
+    others = S.items.filter(o => o !== it && o.kind === "floor" && A.regs[o.id] === reg).map(fp);
+  }
+  let s = "";
+  const yOv = o => o.y < f.y + f.h - EPS && o.y + o.h > f.y + EPS;
+  const xOv = o => o.x < f.x + f.w - EPS && o.x + o.w > f.x + EPS;
+  const midY = o => o ? (Math.max(o.y, f.y) + Math.min(o.y + o.h, f.y + f.h)) / 2 : f.y + f.h / 2;
+  const midX = o => o ? (Math.max(o.x, f.x) + Math.min(o.x + o.w, f.x + f.w)) / 2 : f.x + f.w / 2;
+  // влево
+  { let e = R.x, ob = null; for (const o of others) if (yOv(o) && o.x + o.w <= f.x + EPS && o.x + o.w > e) { e = o.x + o.w; ob = o; }
+    const y = midY(ob); if (f.x - e > 0.5) s += dimLine(e, y, f.x, y, `${Math.round(f.x - e)}`, true); }
+  { let e = R.x + R.w, ob = null; for (const o of others) if (yOv(o) && o.x >= f.x + f.w - EPS && o.x < e) { e = o.x; ob = o; }
+    const y = midY(ob); const x0 = f.x + f.w; if (e - x0 > 0.5) s += dimLine(x0, y, e, y, `${Math.round(e - x0)}`, true); }
+  { let e = R.y, ob = null; for (const o of others) if (xOv(o) && o.y + o.h <= f.y + EPS && o.y + o.h > e) { e = o.y + o.h; ob = o; }
+    const x = midX(ob); if (f.y - e > 0.5) s += dimLine(x, e, x, f.y, `${Math.round(f.y - e)}`, true); }
+  { let e = R.y + R.h, ob = null; for (const o of others) if (xOv(o) && o.y >= f.y + f.h - EPS && o.y < e) { e = o.y; ob = o; }
+    const x = midX(ob); const y0 = f.y + f.h; if (e - y0 > 0.5) s += dimLine(x, y0, x, e, `${Math.round(e - y0)}`, true); }
+  return `<g pointer-events="none" opacity=".95">${s}</g>`;
+}
+
+// ---------- панели ----------
+function renderIssues(A) {
+  const ul = document.getElementById("issues");
+  ul.innerHTML = A.issues.map(i =>
+    `<li class="${i.lvl}" data-ids="${i.ids.join(",")}">${esc(i.text)}${i.src ? `<small>${esc(i.src)}</small>` : ""}</li>`).join("");
+}
+function renderStats(A) {
+  const st = A.stats;
+  document.getElementById("stats").innerHTML =
+    `Площадь <b>${fmt(st.wsArea)} м²</b> · свободно <b>${fmt(st.free)} м²</b> · объём <b>${fmt(st.vol, 1)} м³</b> · мощность <b>${fmt(st.kW, 1)} кВт</b>
+     <br><span class="muted">Чёрная линия — сторона, с которой работают. Штриховка — место для работника. Зелёная полоса — главный проход.</span>`;
+}
+function renderList(A) {
+  const regName = { ws: "мастерская", out: "за стеклом" };
+  document.getElementById("itemList").innerHTML = S.items.map(it =>
+    `<div data-sel="${it.id}" class="${it.id === sel ? "sel" : ""}"><span class="sw" style="background:${it.color}"></span>${esc(it.name)}
+      <small class="${A.regs[it.id] ? "" : "bad"}">${A.regs[it.id] ? regName[A.regs[it.id]] : "в стене!"}</small></div>`).join("");
+}
+function renderProps() {
+  const box = document.getElementById("props");
+  const it = S.items.find(i => i.id === sel);
+  if (propsFor !== (it ? it.id : null)) {
+    propsFor = it ? it.id : null;
+    if (!it) { box.innerHTML = `<h2>Выбранный предмет</h2><p class="muted">Кликните по предмету на плане, чтобы изменить его размеры, повернуть или удалить.</p>`; return; }
+    box.innerHTML = `<h2>Выбранный предмет</h2>
+      <label>Название<input data-f="name" type="text"></label>
+      <div class="row3">
+        <label>Ширина, см<input data-f="w" type="number" step="0.5" min="1"></label>
+        <label>Глубина, см<input data-f="d" type="number" step="0.5" min="1"></label>
+        <label>Высота, см<input data-f="h" type="number" step="1" min="0"></label>
+      </div>
+      <div class="row">
+        <label>Место перед ним, см<input data-f="front" type="number" step="5" min="0"></label>
+        <label>Мощность, кВт<input data-f="kW" type="number" step="0.1" min="0"></label>
+      </div>
+      <div class="row">
+        <label>Где стоит
+          <select data-f="kind"><option value="floor">на полу</option><option value="top">на столе</option><option value="wall">на стене</option></select>
+        </label>
+        <label>Цвет<input data-f="color" type="color"></label>
+      </div>
+      <label class="inline"><input data-f="surface" type="checkbox"> на него можно ставить другое оборудование</label>
+      <div class="row3">
+        <label>X, см<input data-f="x" type="number" step="1"></label>
+        <label>Y, см<input data-f="y" type="number" step="1"></label>
+        <label>Поворот<input data-f="rot" type="text" readonly></label>
+      </div>
+      <div class="btns">
+        <button data-act="rotL">↺ 90°</button><button data-act="rotR">↻ 90°</button>
+        <button data-act="dup">Копия</button><button data-act="del" class="danger">Удалить</button>
+      </div>
+      ${it.url ? `<p><a href="${esc(it.url)}" target="_blank" rel="noopener">Страница товара</a></p>` : ""}
+      ${it.preset === "melanger" ? `<p class="muted">Я считаю передом меланжера сторону шириной 68 см. Если чаша наклоняется в другую сторону, поверните его.</p>` : ""}`;
+  }
+  if (!it) return;
+  box.querySelectorAll("[data-f]").forEach(inp => {
+    if (document.activeElement === inp) return;
+    const f = inp.dataset.f;
+    if (inp.type === "checkbox") inp.checked = !!it[f];
+    else if (f === "rot") inp.value = it.rot + "°";
+    else inp.value = it[f] ?? "";
+  });
+}
+
+function buildPalette() {
+  const groups = {};
+  PRESETS.forEach(p => (groups[p.group] ||= []).push(p));
+  document.getElementById("palette").innerHTML = Object.entries(groups).map(([g, list]) =>
+    `<div class="muted" style="margin-top:4px">${g}</div>` + list.map(p =>
+      `<button data-add="${p.key}"><span class="sw" style="background:${p.color}"></span>${esc(p.name)}<small>${p.w}×${p.d}</small></button>`).join("")).join("");
+}
+function buildSettings() {
+  document.querySelectorAll("[data-room]").forEach(i => { i.value = S.room[i.dataset.room]; });
+  document.querySelectorAll("[data-set]").forEach(i => { i.value = S.settings[i.dataset.set]; });
+  document.querySelectorAll("[data-view]").forEach(i => { i.checked = !!S.view[i.dataset.view]; });
+}
+function buildOpenings() {
+  const wallNames = { top: "стена с окном", right: "правая стена", bottom: "стеклянная стенка", left: "левая стена" };
+  document.getElementById("openings").innerHTML = S.openings.map(op => `
+    <div class="op" data-op="${op.id}">
+      <div class="row">
+        <label>Что<select data-o="role">
+          <option value="entry">Вход в мастерскую</option><option value="toilet">Дверь в туалет</option>
+          <option value="door">Другая дверь</option><option value="window">Окно</option></select></label>
+        <label>Стена<select data-o="wall">${Object.entries(wallNames).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></label>
+      </div>
+      <div class="row">
+        <label>Отступ от угла, см<input data-o="off" type="number" step="1" min="0"></label>
+        <label>Ширина, см<input data-o="w" type="number" step="1" min="10"></label>
+      </div>
+      ${op.kind === "door" ? `<div class="row">
+        <label>Открывается<select data-o="swing"><option value="in">внутрь</option><option value="out">наружу</option><option value="slide">раздвижная</option></select></label>
+        <label>Петли<select data-o="hinge"><option value="a">с одной стороны</option><option value="b">с другой стороны</option></select></label>
+      </div>` : ""}
+      <button data-delop="${op.id}" class="danger">Удалить</button>
+    </div>`).join("");
+  document.querySelectorAll("#openings .op").forEach(div => {
+    const op = S.openings.find(o => o.id === div.dataset.op);
+    div.querySelectorAll("[data-o]").forEach(i => { i.value = op[i.dataset.o] ?? ""; });
+  });
+}
+function buildChecklist() {
+  document.getElementById("checklist").innerHTML = CHECKLIST.map(c =>
+    `<label><input type="checkbox" data-chk="${c.id}" ${S.checklist[c.id] ? "checked" : ""}><span>${esc(c.text)}<small>${esc(c.src)}</small></span></label>`).join("");
+}
+
+// ---------- действия ----------
+function commit() { render(); save(); }
+function snapV(v, e) { const st = S.settings.snap || 1; return e && e.altKey ? Math.round(v * 2) / 2 : Math.round(v / st) * st; }
+function addItem(key) {
+  pushHist();
+  const p = PRESETS.find(p => p.key === key);
+  const it = fromPreset(key, 0, 0, 0);
+  it.x = snapV(S.room.w / 2 - p.w / 2); it.y = snapV(S.room.h / 2 - p.d / 2);
+  S.items.push(it); sel = it.id; commit();
+}
+function childrenOf(it) {
+  if (!it.surface) return [];
+  const f = fp(it);
+  return S.items.filter(o => o !== it && o.kind === "top" && inside(fp(o), f));
+}
+function rotate(it, dir) {
+  pushHist();
+  const f = fp(it), cx = f.x + f.w / 2, cy = f.y + f.h / 2;
+  const kids = childrenOf(it);
+  it.rot = (it.rot + (dir > 0 ? 90 : 270)) % 360;
+  const nf = fp(it);
+  it.x = Math.round((cx - nf.w / 2) * 2) / 2; it.y = Math.round((cy - nf.h / 2) * 2) / 2;
+  for (const k of kids) {
+    const kf = fp(k), kx = kf.x + kf.w / 2 - cx, ky = kf.y + kf.h / 2 - cy;
+    const [rx, ry] = dir > 0 ? [-ky, kx] : [ky, -kx];
+    k.rot = (k.rot + (dir > 0 ? 90 : 270)) % 360;
+    const kn = fp(k);
+    k.x = Math.round((cx + rx - kn.w / 2) * 2) / 2; k.y = Math.round((cy + ry - kn.h / 2) * 2) / 2;
+  }
+  commit();
+}
+function del(it) { pushHist(); S.items = S.items.filter(i => i !== it); sel = null; commit(); }
+function dup(it) {
+  pushHist();
+  const c = { ...it, id: uid(), x: it.x + 10, y: it.y + 10 };
+  S.items.push(c); sel = c.id; commit();
+}
+function toSvg(e) {
+  const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  return pt.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+svg.addEventListener("pointerdown", e => {
+  const g = e.target.closest("[data-id]");
+  if (!g) { if (sel) { sel = null; render(); } return; }
+  const it = S.items.find(i => i.id === g.dataset.id);
+  sel = it.id;
+  pushHist();
+  const p = toSvg(e);
+  drag = { it, sx: p.x, sy: p.y, ox: it.x, oy: it.y, kids: childrenOf(it).map(k => ({ k, ox: k.x, oy: k.y })), moved: false };
+  svg.setPointerCapture(e.pointerId);
+  render();
+});
+svg.addEventListener("pointermove", e => {
+  if (!drag) return;
+  const p = toSvg(e);
+  const nx = snapV(drag.ox + p.x - drag.sx, e), ny = snapV(drag.oy + p.y - drag.sy, e);
+  if (nx === drag.it.x && ny === drag.it.y) return;
+  drag.moved = true;
+  drag.it.x = nx; drag.it.y = ny;
+  const dx = nx - drag.ox, dy = ny - drag.oy;
+  for (const c of drag.kids) { c.k.x = c.ox + dx; c.k.y = c.oy + dy; }
+  render();
+});
+svg.addEventListener("pointerup", e => {
+  if (!drag) return;
+  if (!drag.moved) hist.pop();
+  drag = null; svg.releasePointerCapture(e.pointerId); save();
+});
+
+document.addEventListener("keydown", e => {
+  if (e.target.matches("input, select, textarea")) return;
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") { e.preventDefault(); undo(); return; }
+  const it = S.items.find(i => i.id === sel); if (!it) return;
+  const k = e.key;
+  if (k === "r" || k === "R" || k === "к" || k === "К") { rotate(it, e.shiftKey ? -1 : 1); }
+  else if (k === "Delete" || k === "Backspace") { e.preventDefault(); del(it); }
+  else if ((e.ctrlKey || e.metaKey) && (k === "d" || k === "в")) { e.preventDefault(); dup(it); }
+  else if (k === "Escape") { sel = null; render(); }
+  else if (k.startsWith("Arrow")) {
+    e.preventDefault(); pushHist();
+    const st = e.shiftKey ? 10 : 1, dx = k === "ArrowLeft" ? -st : k === "ArrowRight" ? st : 0, dy = k === "ArrowUp" ? -st : k === "ArrowDown" ? st : 0;
+    for (const c of childrenOf(it)) { c.x += dx; c.y += dy; }
+    it.x += dx; it.y += dy; commit();
+  }
+});
+
+document.getElementById("palette").addEventListener("click", e => {
+  const b = e.target.closest("[data-add]"); if (b) addItem(b.dataset.add);
+});
+document.getElementById("itemList").addEventListener("click", e => {
+  const d = e.target.closest("[data-sel]"); if (d) { sel = d.dataset.sel; render(); }
+});
+document.getElementById("issues").addEventListener("click", e => {
+  const li = e.target.closest("li[data-ids]"); if (!li || !li.dataset.ids) return;
+  sel = li.dataset.ids.split(",")[0]; render();
+});
+const props = document.getElementById("props");
+props.addEventListener("focusin", e => { if (e.target.matches("[data-f]")) pushHist(); });
+props.addEventListener("input", e => {
+  const inp = e.target.closest("[data-f]"); if (!inp) return;
+  const it = S.items.find(i => i.id === sel); if (!it) return;
+  const f = inp.dataset.f;
+  if (f === "rot") return;
+  if (inp.type === "checkbox") it[f] = inp.checked;
+  else if (inp.type === "number") { const v = parseFloat(inp.value); if (isNaN(v)) return; it[f] = v; }
+  else it[f] = inp.value;
+  if (f === "kind" && it.kind !== "floor") it.surface = false;
+  commit();
+});
+props.addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if (!b) return;
+  const it = S.items.find(i => i.id === sel); if (!it) return;
+  ({ rotL: () => rotate(it, -1), rotR: () => rotate(it, 1), dup: () => dup(it), del: () => del(it) })[b.dataset.act]();
+});
+
+document.querySelectorAll("[data-room]").forEach(i => {
+  i.addEventListener("focus", pushHist);
+  i.addEventListener("input", () => { const v = parseFloat(i.value); if (!isNaN(v) && v >= 0) { S.room[i.dataset.room] = v; commit(); } });
+});
+document.querySelectorAll("[data-set]").forEach(i => {
+  i.addEventListener("input", () => { const v = parseFloat(i.value); if (!isNaN(v) && v > 0) { S.settings[i.dataset.set] = v; commit(); } });
+});
+document.querySelectorAll("[data-view]").forEach(i => {
+  i.addEventListener("change", () => { S.view[i.dataset.view] = i.checked; commit(); });
+});
+const opsBox = document.getElementById("openings");
+opsBox.addEventListener("focusin", e => { if (e.target.matches("[data-o]")) pushHist(); });
+opsBox.addEventListener("input", e => {
+  const i = e.target.closest("[data-o]"); if (!i) return;
+  const op = S.openings.find(o => o.id === i.closest("[data-op]").dataset.op);
+  const f = i.dataset.o;
+  if (i.type === "number") { const v = parseFloat(i.value); if (isNaN(v)) return; op[f] = v; }
+  else op[f] = i.value;
+  if (f === "role") {
+    const was = op.kind;
+    op.kind = op.role === "window" ? "window" : "door";
+    if (op.kind === "door") { op.swing ||= "in"; op.hinge ||= "a"; }
+    if (was !== op.kind) buildOpenings();
+  }
+  commit();
+});
+opsBox.addEventListener("click", e => {
+  const b = e.target.closest("[data-delop]"); if (!b) return;
+  pushHist(); S.openings = S.openings.filter(o => o.id !== b.dataset.delop); buildOpenings(); commit();
+});
+document.getElementById("bAddOp").addEventListener("click", () => {
+  pushHist();
+  S.openings.push({ id: uid(), role: "door", kind: "door", wall: "left", off: 20, w: 80, swing: "in", hinge: "a" });
+  buildOpenings(); commit();
+});
+document.getElementById("checklist").addEventListener("change", e => {
+  const c = e.target.closest("[data-chk]"); if (!c) return;
+  S.checklist[c.dataset.chk] = c.checked; commit();
+});
+
+document.getElementById("bUndo").onclick = undo;
+document.getElementById("bReset").onclick = () => {
+  if (!confirm("Вернуть стартовую расстановку? Текущая будет потеряна, если вы её не сохранили в файл.")) return;
+  pushHist(); S = defaultState(); sel = null; propsFor = undefined;
+  buildSettings(); buildOpenings(); buildChecklist(); commit();
+};
+document.getElementById("bSave").onclick = () => {
+  const blob = new Blob([JSON.stringify(S, null, 2)], { type: "application/json" });
+  download(blob, `masterskaya-${new Date().toISOString().slice(0, 10)}.json`);
+};
+document.getElementById("bLoad").onclick = () => document.getElementById("fileIn").click();
+document.getElementById("fileIn").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  f.text().then(t => {
+    const s = normalize(JSON.parse(t));
+    if (!s) throw new Error();
+    pushHist(); S = s; sel = null; propsFor = undefined;
+    buildSettings(); buildOpenings(); buildChecklist(); commit();
+  }).catch(() => alert("Не получилось открыть файл. Это точно файл, сохранённый из планировщика?"));
+  e.target.value = "";
+};
+document.getElementById("bPng").onclick = () => {
+  const vb = viewBox(), scale = 4;
+  const clone = svg.cloneNode(true);
+  clone.setAttribute("width", vb[2] * scale); clone.setAttribute("height", vb[3] * scale);
+  const data = new XMLSerializer().serializeToString(clone);
+  const img = new Image();
+  img.onload = () => {
+    const cv = document.createElement("canvas"); cv.width = vb[2] * scale; cv.height = vb[3] * scale;
+    const ctx = cv.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.drawImage(img, 0, 0); cv.toBlob(b => download(b, "masterskaya.png"));
+  };
+  img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(data);
+};
+document.getElementById("bPrint").onclick = () => window.print();
+function download(blob, name) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+buildPalette(); buildSettings(); buildOpenings(); buildChecklist(); render();
+</script>
+</body>
+</html>
