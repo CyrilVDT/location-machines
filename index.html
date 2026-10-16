@@ -89,61 +89,64 @@
 </head>
 <body>
 <header>
-  <h1>Планировщик мастерской</h1>
-  <button id="bUndo" title="Ctrl+Z">↶ Отменить</button>
-  <button id="bSave">💾 Сохранить в файл</button>
-  <button id="bLoad">📂 Открыть файл</button>
-  <button id="bPng">🖼 Картинка PNG</button>
-  <button id="bPrint">🖨 Печать</button>
-  <button id="bReset" class="danger">Сбросить к стартовому варианту</button>
+  <h1 data-i18n="title"></h1>
+  <select id="lang" title="Language" style="width:auto">
+    <option value="ru">Русский</option><option value="en">English</option><option value="cs">Čeština</option>
+  </select>
+  <button id="bUndo" title="Ctrl+Z" data-i18n="undo"></button>
+  <button id="bSave" data-i18n="save"></button>
+  <button id="bLoad" data-i18n="load"></button>
+  <button id="bPng" data-i18n="png"></button>
+  <button id="bPrint" data-i18n="print"></button>
+  <button id="bReset" class="danger" data-i18n="reset"></button>
   <input type="file" id="fileIn" accept=".json,application/json" hidden>
-  <span class="hint">Перетаскивайте мышкой · <b>R</b> повернуть · <b>Del</b> удалить · <b>Ctrl+D</b> копия · стрелки двигают на 1 см (Shift — на 10) · <b>Alt</b> без привязки к сетке</span>
+  <span class="hint" data-i18n-html="hint"></span>
 </header>
 
 <aside class="left">
-  <h2>Добавить</h2>
+  <h2 data-i18n="add"></h2>
   <div class="palette" id="palette"></div>
 
-  <h2>Что стоит в плане</h2>
+  <h2 data-i18n="inPlan"></h2>
   <div class="itemlist" id="itemList"></div>
 
   <details open>
-    <summary>Помещение</summary>
+    <summary data-i18n="room"></summary>
     <div class="row">
-      <label>Ширина мастерской, см<input type="number" data-room="w" min="50" step="1"></label>
-      <label>Глубина мастерской, см<input type="number" data-room="h" min="50" step="1"></label>
+      <label><span data-i18n="roomW"></span><input type="number" data-room="w" min="50" step="1"></label>
+      <label><span data-i18n="roomH"></span><input type="number" data-room="h" min="50" step="1"></label>
     </div>
     <div class="row">
-      <label>Высота потолка, см<input type="number" data-room="H" min="150" step="1"></label>
-      <label>Комната за стеклом, глубина, см<input type="number" data-room="out" min="0" step="1"></label>
+      <label><span data-i18n="roomHeight"></span><input type="number" data-room="H" min="150" step="1"></label>
+      <label><span data-i18n="roomOut"></span><input type="number" data-room="out" min="0" step="1"></label>
     </div>
   </details>
 
   <details>
-    <summary>Двери и окна</summary>
+    <summary data-i18n="openings"></summary>
     <div id="openings"></div>
-    <button id="bAddOp">+ Добавить дверь или окно</button>
+    <button id="bAddOp" data-i18n="addOp"></button>
   </details>
 
   <details open>
-    <summary>Параметры проверки</summary>
+    <summary data-i18n="params"></summary>
     <div class="row">
-      <label>Работников в смене<input type="number" data-set="persons" min="1" step="1"></label>
-      <label>Тип работы
+      <label><span data-i18n="persons"></span><input type="number" data-set="persons" min="1" step="1"></label>
+      <label><span data-i18n="workClass"></span>
         <select data-set="workClass">
-          <option value="12">Сидя, лёгкая (12 м³)</option>
-          <option value="15">Стоя (15 м³)</option>
-          <option value="18">Тяжёлая (18 м³)</option>
+          <option value="12" data-i18n="wc12"></option>
+          <option value="15" data-i18n="wc15"></option>
+          <option value="18" data-i18n="wc18"></option>
         </select>
       </label>
     </div>
     <div class="row">
-      <label>Главный проход, см<input type="number" data-set="passMin" min="40" step="5"></label>
-      <label>Подход к машине, см<input type="number" data-set="reachMin" min="40" step="5"></label>
+      <label><span data-i18n="passMin"></span><input type="number" data-set="passMin" min="40" step="5"></label>
+      <label><span data-i18n="reachMin"></span><input type="number" data-set="reachMin" min="40" step="5"></label>
     </div>
     <div class="row">
-      <label>Лимит одной линии, кВт<input type="number" data-set="circuitKW" min="0.5" step="0.1"></label>
-      <label>Шаг сетки, см<input type="number" data-set="snap" min="0.5" step="0.5"></label>
+      <label><span data-i18n="circuit"></span><input type="number" data-set="circuitKW" min="0.5" step="0.1"></label>
+      <label><span data-i18n="snap"></span><input type="number" data-set="snap" min="0.5" step="0.5"></label>
     </div>
   </details>
 </aside>
@@ -151,38 +154,27 @@
 <main id="stage">
   <svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
   <div class="viewbar">
-    <label class="inline"><input type="checkbox" data-view="showOutside"> комната за стеклом</label>
-    <label class="inline"><input type="checkbox" data-view="showZones"> зоны обслуживания</label>
-    <label class="inline"><input type="checkbox" data-view="showPath"> главный проход</label>
-    <label class="inline"><input type="checkbox" data-view="showReach"> где можно пройти</label>
+    <label class="inline"><input type="checkbox" data-view="showOutside"> <span data-i18n="vOutside"></span></label>
+    <label class="inline"><input type="checkbox" data-view="showZones"> <span data-i18n="vZones"></span></label>
+    <label class="inline"><input type="checkbox" data-view="showPath"> <span data-i18n="vPath"></span></label>
+    <label class="inline"><input type="checkbox" data-view="showReach"> <span data-i18n="vReach"></span></label>
   </div>
   <div id="stats"></div>
 </main>
 
 <aside class="right">
   <div id="props"></div>
-  <h2>Проверки</h2>
+  <h2 data-i18n="checks"></h2>
   <ul class="issues" id="issues"></ul>
 
   <details open>
-    <summary>Чек-лист: гигиена и пожарная безопасность</summary>
+    <summary data-i18n="checklistT"></summary>
     <div class="checklist" id="checklist"></div>
   </details>
 
   <details>
-    <summary>Нормы, которые проверяются</summary>
-    <div class="norms">
-      <p><b>Проход для людей ≥ 1,1 м</b><br><small>NV 101/2005 Sb., příloha, bod 5.1 (komunikace pro pěší)</small></p>
-      <p><b>Свободная полоса для движения ≥ 1 м, оборудованием не сужать</b><br><small>NV 361/2007 Sb., § 48</small></p>
-      <p><b>Свободная площадь ≥ 2 м² на работника</b> (без оборудования и проходов)<br><small>NV 361/2007 Sb., § 48</small></p>
-      <p><b>Объём 12 / 15 / 18 м³ на работника</b> (сидя / стоя / тяжёлая работа)<br><small>NV 361/2007 Sb., § 47</small></p>
-      <p><b>Высота потолка:</b> до 20 м² — 2,5 м; до 50 м² — 2,6 м; 51–100 м² — 2,7 м; 101–2000 м² — 3,0 м<br><small>NV 361/2007 Sb., § 46</small></p>
-      <p><b>Туалет не может открываться прямо в помещение, где работают с продуктами</b><br><small>Nařízení (ES) 852/2004, příloha II, kap. I, bod 3</small></p>
-      <p><b>Путь эвакуации:</b> не уже 1 эвакуационной полосы (550 мм); дверь 800 мм считается за 1,5 полосы<br><small>ČSN 73 0802 / ČSN 73 0804</small></p>
-      <p><b>Огнетушители:</b> количество по vyhl. 23/2008 Sb., příloha 4; не должны сужать путь эвакуации<br><small>vyhl. 23/2008 Sb., § 13</small></p>
-      <p><b>Туалет:</b> 1 место на 10 человек, не дальше 120 м от рабочего места<br><small>NV 361/2007 Sb., § 54</small></p>
-      <p class="muted">Программа помогает с черновой планировкой. Окончательно планировку подтверждают специалист по пожарной безопасности (technik PO), по охране труда (BOZP) и санитарная служба (KHS) или инспекция по продуктам питания (SZPI).</p>
-    </div>
+    <summary data-i18n="normsT"></summary>
+    <div class="norms" data-i18n-html="norms"></div>
   </details>
 </aside>
 
@@ -194,45 +186,313 @@ const GLASS = 6;   // толщина стеклянной стенки, см
 const WALL = 15;   // толщина капитальных стен на рисунке, см
 const CELL = 2.5;  // шаг сетки для расчёта проходов, см
 
+const I18N = {
+  ru: {
+    title: "Планировщик мастерской", undo: "↶ Отменить", save: "💾 Сохранить в файл", load: "📂 Открыть файл",
+    png: "🖼 Картинка PNG", print: "🖨 Печать", reset: "Сбросить к стартовому варианту",
+    hint: "Перетаскивайте мышкой · <b>R</b> повернуть · <b>Del</b> удалить · <b>Ctrl+D</b> копия · стрелки двигают на 1 см (Shift — на 10) · <b>Alt</b> без привязки к сетке",
+    add: "Добавить", inPlan: "Что стоит в плане", room: "Помещение",
+    roomW: "Ширина мастерской, см", roomH: "Глубина мастерской, см", roomHeight: "Высота потолка, см", roomOut: "Комната за стеклом, глубина, см",
+    openings: "Двери и окна", addOp: "+ Добавить дверь или окно", params: "Параметры проверки",
+    persons: "Работников в смене", workClass: "Тип работы", wc12: "Сидя, лёгкая (12 м³)", wc15: "Стоя (15 м³)", wc18: "Тяжёлая (18 м³)",
+    passMin: "Главный проход, см", reachMin: "Подход к машине, см", circuit: "Лимит одной линии, кВт", snap: "Шаг сетки, см",
+    vOutside: "комната за стеклом", vZones: "зоны обслуживания", vPath: "главный проход", vReach: "где можно пройти",
+    checks: "Проверки", checklistT: "Чек-лист: гигиена и пожарная безопасность", normsT: "Нормы, которые проверяются",
+    norms: `<p><b>Проход для людей ≥ 1,1 м</b><br><small>NV 101/2005 Sb., příloha, bod 5.1 (komunikace pro pěší)</small></p>
+      <p><b>Свободная полоса для движения ≥ 1 м, оборудованием не сужать</b><br><small>NV 361/2007 Sb., § 48</small></p>
+      <p><b>Свободная площадь ≥ 2 м² на работника</b> (без оборудования и проходов)<br><small>NV 361/2007 Sb., § 48</small></p>
+      <p><b>Объём 12 / 15 / 18 м³ на работника</b> (сидя / стоя / тяжёлая работа)<br><small>NV 361/2007 Sb., § 47</small></p>
+      <p><b>Высота потолка:</b> до 20 м² — 2,5 м; до 50 м² — 2,6 м; 51–100 м² — 2,7 м; 101–2000 м² — 3,0 м<br><small>NV 361/2007 Sb., § 46</small></p>
+      <p><b>Туалет не может открываться прямо в помещение, где работают с продуктами</b><br><small>Nařízení (ES) 852/2004, příloha II, kap. I, bod 3</small></p>
+      <p><b>Путь эвакуации:</b> не уже 1 эвакуационной полосы (550 мм); дверь 800 мм считается за 1,5 полосы<br><small>ČSN 73 0802 / ČSN 73 0804</small></p>
+      <p><b>Огнетушители:</b> количество по vyhl. 23/2008 Sb., příloha 4; не должны сужать путь эвакуации<br><small>vyhl. 23/2008 Sb., § 13</small></p>
+      <p><b>Туалет:</b> 1 место на 10 человек, не дальше 120 м от рабочего места<br><small>NV 361/2007 Sb., § 54</small></p>
+      <p class="muted">Программа помогает с черновой планировкой. Окончательно планировку подтверждают специалист по пожарной безопасности (technik PO), по охране труда (BOZP) и санитарная служба (KHS) или инспекция по продуктам питания (SZPI).</p>`,
+    qL: "«", qR: "»", cm: "см", m: "м",
+    role_entry: "вход в мастерскую", role_toilet: "дверь в туалет", role_door: "дверь", role_window: "окно",
+    iWall: "{a} пересекает стену или стоит за пределами помещения",
+    iOverlap: "{a} и {b} наезжают друг на друга",
+    iFrontItems: "Перед {a} нет {cm} см свободного места: мешает {list}",
+    iFrontWall: "Перед {a} нет {cm} см свободного места: мешает стена",
+    iOnFloor: "{a} стоит на полу. Поставьте на стол целиком",
+    iTopOverlap: "{a} и {b} наезжают друг на друга на столе",
+    iDoorBlocked: "Не открыть {door}: мешает {list}",
+    iDoorSwing: "Дверь ({door}) открывается туда, где стоит работник: {list}",
+    iNoEntry: "Нет входной двери в мастерскую. Добавьте её в разделе «Двери и окна»",
+    iEntryNarrow: "Дверь в мастерскую {w} см. Для пути эвакуации нужно не меньше 80 см",
+    iEntryOk: "Дверь в мастерскую {w} см — не меньше 80 см",
+    iTooBig: "Через дверь {w} см не пронести: {list}",
+    iPathOk: "Проход шириной {cm} см от входа до {door} есть",
+    iPathNo: "Нет прохода шириной {cm} см от входа до {door}",
+    iReachNo: "К {a} не подойти: нужен проход не уже {cm} см",
+    iFree: "Свободная площадь {v} м², нужно не меньше {need} м²",
+    iVol: "Объём {v} м³, нужно не меньше {need} м³",
+    iHeight: "Высота {v} м, для площади {a} м² нужно не меньше {need} м",
+    iPower: "Мощность в мастерской {v} кВт, а одна линия выдерживает около {lim} кВт. Нужно несколько линий",
+    iHeavy: "{list}: больше 2 кВт и долго работает. Нужна отдельная линия",
+    iNoHandwash: "В мастерской нет раковины для рук",
+    iNoExt: "Нет огнетушителя",
+    iToilet: "Туалет открывается прямо в мастерскую. Нужен тамбур или перенос двери. Если тамбур уже есть, отметьте это в чек-листе",
+    outsideLabel: "Остальная часть комнаты (за стеклом)", wsTitle: "Мастерская {w} × {h} м = {a} м²",
+    winLbl: "окно", entryLbl: "вход", doorLbl: "дверь", toiletLbl: "туалет", extShort: "PHP",
+    stats: `Площадь <b>{a} м²</b> · свободно <b>{f} м²</b> · объём <b>{v} м³</b> · мощность <b>{p} кВт</b>
+     <br><span class="muted">Чёрная линия — сторона, с которой работают. Штриховка — место для работника. Зелёная полоса — главный проход.</span>`,
+    reg_ws: "мастерская", reg_out: "за стеклом", reg_none: "в стене!",
+    selItem: "Выбранный предмет", selHint: "Кликните по предмету на плане, чтобы изменить его размеры, повернуть или удалить.",
+    pName: "Название", pW: "Ширина, см", pD: "Глубина, см", pH: "Высота, см", pFront: "Место перед ним, см", pKW: "Мощность, кВт",
+    pKind: "Где стоит", kFloor: "на полу", kTop: "на столе", kWall: "на стене", pColor: "Цвет",
+    pSurface: "на него можно ставить другое оборудование", pRot: "Поворот", copy: "Копия", del: "Удалить", productPage: "Страница товара",
+    melNote: "Я считаю передом меланжера сторону шириной 68 см. Если чаша наклоняется в другую сторону, поверните его.",
+    gKadzama: "Оборудование KADZAMA", gFurniture: "Мебель и прочее",
+    oWhat: "Что", oWall: "Стена", wall_top: "стена с окном", wall_right: "правая стена", wall_bottom: "стеклянная стенка", wall_left: "левая стена",
+    oOff: "Отступ от угла, см", oW: "Ширина, см", oSwing: "Открывается", sw_in: "внутрь", sw_out: "наружу", sw_slide: "раздвижная",
+    oHinge: "Петли", h_a: "с одной стороны", h_b: "с другой стороны",
+    opt_entry: "Вход в мастерскую", opt_toilet: "Дверь в туалет", opt_door: "Другая дверь", opt_window: "Окно",
+    confirmReset: "Вернуть стартовую расстановку? Текущая будет потеряна, если вы её не сохранили в файл.",
+    loadErr: "Не получилось открыть файл. Это точно файл, сохранённый из планировщика?",
+    fileBase: "masterskaya",
+  },
+  en: {
+    title: "Workshop planner", undo: "↶ Undo", save: "💾 Save to file", load: "📂 Open file",
+    png: "🖼 PNG image", print: "🖨 Print", reset: "Reset to default layout",
+    hint: "Drag with the mouse · <b>R</b> rotate · <b>Del</b> delete · <b>Ctrl+D</b> duplicate · arrows move by 1 cm (Shift — by 10) · <b>Alt</b> no grid snapping",
+    add: "Add", inPlan: "Items in the plan", room: "Room",
+    roomW: "Workshop width, cm", roomH: "Workshop depth, cm", roomHeight: "Ceiling height, cm", roomOut: "Room behind the glass, depth, cm",
+    openings: "Doors and windows", addOp: "+ Add a door or window", params: "Check settings",
+    persons: "Workers per shift", workClass: "Type of work", wc12: "Seated, light (12 m³)", wc15: "Standing (15 m³)", wc18: "Heavy (18 m³)",
+    passMin: "Main walkway, cm", reachMin: "Access to a machine, cm", circuit: "One circuit limit, kW", snap: "Grid step, cm",
+    vOutside: "room behind the glass", vZones: "working areas", vPath: "main walkway", vReach: "where you can walk",
+    checks: "Checks", checklistT: "Checklist: hygiene and fire safety", normsT: "Regulations being checked",
+    norms: `<p><b>Walkway for people ≥ 1.1 m</b><br><small>NV 101/2005 Sb., příloha, bod 5.1 (komunikace pro pěší)</small></p>
+      <p><b>Free strip for movement ≥ 1 m, not narrowed by equipment</b><br><small>NV 361/2007 Sb., § 48</small></p>
+      <p><b>Free floor area ≥ 2 m² per worker</b> (excluding equipment and walkways)<br><small>NV 361/2007 Sb., § 48</small></p>
+      <p><b>Air volume 12 / 15 / 18 m³ per worker</b> (seated / standing / heavy work)<br><small>NV 361/2007 Sb., § 47</small></p>
+      <p><b>Ceiling height:</b> up to 20 m² — 2.5 m; up to 50 m² — 2.6 m; 51–100 m² — 2.7 m; 101–2000 m² — 3.0 m<br><small>NV 361/2007 Sb., § 46</small></p>
+      <p><b>Toilets must not open directly into rooms where food is handled</b><br><small>Regulation (EC) 852/2004, Annex II, Chapter I, point 3</small></p>
+      <p><b>Escape route:</b> at least 1 exit lane (550 mm); an 800 mm door counts as 1.5 lanes<br><small>ČSN 73 0802 / ČSN 73 0804</small></p>
+      <p><b>Fire extinguishers:</b> number according to vyhl. 23/2008 Sb., příloha 4; must not narrow the escape route<br><small>vyhl. 23/2008 Sb., § 13</small></p>
+      <p><b>Toilet:</b> 1 seat per 10 people, no further than 120 m from the workplace<br><small>NV 361/2007 Sb., § 54</small></p>
+      <p class="muted">This tool helps with a draft layout. The final layout has to be approved by a fire safety technician (technik PO), an occupational safety specialist (BOZP) and the public health authority (KHS) or the food inspection authority (SZPI).</p>`,
+    qL: "“", qR: "”", cm: "cm", m: "m",
+    role_entry: "workshop entrance", role_toilet: "toilet door", role_door: "door", role_window: "window",
+    iWall: "{a} crosses a wall or is outside the room",
+    iOverlap: "{a} and {b} overlap",
+    iFrontItems: "No {cm} cm of free space in front of {a}: blocked by {list}",
+    iFrontWall: "No {cm} cm of free space in front of {a}: blocked by a wall",
+    iOnFloor: "{a} is standing on the floor. Place it entirely on a table",
+    iTopOverlap: "{a} and {b} overlap on the table",
+    iDoorBlocked: "The {door} can't open: blocked by {list}",
+    iDoorSwing: "The {door} swings into the working area of {list}",
+    iNoEntry: "There is no entrance door to the workshop. Add one under “Doors and windows”",
+    iEntryNarrow: "The workshop door is {w} cm. An escape route needs at least 80 cm",
+    iEntryOk: "Workshop door {w} cm — at least 80 cm",
+    iTooBig: "Won't fit through the {w} cm door: {list}",
+    iPathOk: "There is a {cm} cm walkway from the entrance to the {door}",
+    iPathNo: "No {cm} cm walkway from the entrance to the {door}",
+    iReachNo: "{a} can't be reached: a walkway of at least {cm} cm is needed",
+    iFree: "Free floor area {v} m², at least {need} m² required",
+    iVol: "Volume {v} m³, at least {need} m³ required",
+    iHeight: "Height {v} m; for an area of {a} m² at least {need} m is required",
+    iPower: "Workshop load is {v} kW, but one circuit handles about {lim} kW. Several circuits are needed",
+    iHeavy: "{list}: over 2 kW and runs for a long time. Needs a dedicated circuit",
+    iNoHandwash: "There is no hand-wash basin in the workshop",
+    iNoExt: "No fire extinguisher",
+    iToilet: "The toilet opens directly into the workshop. A lobby or a relocated door is needed. If there is a lobby already, tick it in the checklist",
+    outsideLabel: "Rest of the room (behind the glass)", wsTitle: "Workshop {w} × {h} m = {a} m²",
+    winLbl: "window", entryLbl: "entry", doorLbl: "door", toiletLbl: "toilet", extShort: "FE",
+    stats: `Area <b>{a} m²</b> · free <b>{f} m²</b> · volume <b>{v} m³</b> · power <b>{p} kW</b>
+     <br><span class="muted">Black line — the side you work from. Hatching — space for the worker. Green band — main walkway.</span>`,
+    reg_ws: "workshop", reg_out: "behind glass", reg_none: "in a wall!",
+    selItem: "Selected item", selHint: "Click an item on the plan to change its size, rotate or delete it.",
+    pName: "Name", pW: "Width, cm", pD: "Depth, cm", pH: "Height, cm", pFront: "Space in front, cm", pKW: "Power, kW",
+    pKind: "Placed", kFloor: "on the floor", kTop: "on a table", kWall: "on a wall", pColor: "Colour",
+    pSurface: "other equipment can stand on it", pRot: "Rotation", copy: "Duplicate", del: "Delete", productPage: "Product page",
+    melNote: "I assume the 68 cm side is the melanger's front. If the bowl tilts the other way, rotate it.",
+    gKadzama: "KADZAMA equipment", gFurniture: "Furniture and other",
+    oWhat: "What", oWall: "Wall", wall_top: "window wall", wall_right: "right wall", wall_bottom: "glass wall", wall_left: "left wall",
+    oOff: "Offset from corner, cm", oW: "Width, cm", oSwing: "Opens", sw_in: "inwards", sw_out: "outwards", sw_slide: "sliding",
+    oHinge: "Hinges", h_a: "one side", h_b: "other side",
+    opt_entry: "Workshop entrance", opt_toilet: "Toilet door", opt_door: "Other door", opt_window: "Window",
+    confirmReset: "Restore the default layout? The current one will be lost unless you saved it to a file.",
+    loadErr: "Couldn't open the file. Was it saved from this planner?",
+    fileBase: "workshop",
+  },
+  cs: {
+    title: "Plánovač dílny", undo: "↶ Zpět", save: "💾 Uložit do souboru", load: "📂 Otevřít soubor",
+    png: "🖼 Obrázek PNG", print: "🖨 Tisk", reset: "Obnovit výchozí plán",
+    hint: "Přetahujte myší · <b>R</b> otočit · <b>Del</b> smazat · <b>Ctrl+D</b> kopie · šipky posouvají o 1 cm (Shift — o 10) · <b>Alt</b> bez přichytávání k mřížce",
+    add: "Přidat", inPlan: "Co je v plánu", room: "Místnost",
+    roomW: "Šířka dílny, cm", roomH: "Hloubka dílny, cm", roomHeight: "Výška stropu, cm", roomOut: "Místnost za sklem, hloubka, cm",
+    openings: "Dveře a okna", addOp: "+ Přidat dveře nebo okno", params: "Parametry kontroly",
+    persons: "Pracovníků ve směně", workClass: "Druh práce", wc12: "Vsedě, lehká (12 m³)", wc15: "Vestoje (15 m³)", wc18: "Těžká (18 m³)",
+    passMin: "Hlavní průchod, cm", reachMin: "Přístup ke stroji, cm", circuit: "Limit jednoho okruhu, kW", snap: "Krok mřížky, cm",
+    vOutside: "místnost za sklem", vZones: "obslužné prostory", vPath: "hlavní průchod", vReach: "kudy lze projít",
+    checks: "Kontroly", checklistT: "Kontrolní seznam: hygiena a požární ochrana", normsT: "Kontrolované předpisy",
+    norms: `<p><b>Komunikace pro pěší ≥ 1,1 m</b><br><small>NV 101/2005 Sb., příloha, bod 5.1</small></p>
+      <p><b>Volná plocha pro pohyb nesmí být stabilním zařízením zúžena pod 1 m</b><br><small>NV 361/2007 Sb., § 48</small></p>
+      <p><b>Volná podlahová plocha ≥ 2 m² na zaměstnance</b> (mimo stabilní zařízení a spojovací cesty)<br><small>NV 361/2007 Sb., § 48</small></p>
+      <p><b>Objemový prostor 12 / 15 / 18 m³ na zaměstnance</b> (vsedě / vestoje / těžká práce)<br><small>NV 361/2007 Sb., § 47</small></p>
+      <p><b>Světlá výška:</b> do 20 m² — 2,5 m; do 50 m² — 2,6 m; 51–100 m² — 2,7 m; 101–2000 m² — 3,0 m<br><small>NV 361/2007 Sb., § 46</small></p>
+      <p><b>Záchody nesmí ústit přímo do místností, kde se manipuluje s potravinami</b><br><small>Nařízení (ES) 852/2004, příloha II, kap. I, bod 3</small></p>
+      <p><b>Úniková cesta:</b> nejméně 1 únikový pruh (550 mm); dveře 800 mm vyhovují pro 1,5 pruhu<br><small>ČSN 73 0802 / ČSN 73 0804</small></p>
+      <p><b>Hasicí přístroje:</b> počet podle vyhl. 23/2008 Sb., příloha 4; nesmí zužovat únikovou cestu<br><small>vyhl. 23/2008 Sb., § 13</small></p>
+      <p><b>Záchod:</b> 1 sedadlo na 10 osob, nejdále 120 m od pracoviště<br><small>NV 361/2007 Sb., § 54</small></p>
+      <p class="muted">Nástroj pomáhá s orientačním návrhem dispozice. Konečné řešení musí posoudit technik požární ochrany, odborník BOZP a KHS nebo SZPI.</p>`,
+    qL: "„", qR: "“", cm: "cm", m: "m",
+    role_entry: "vstup do dílny", role_toilet: "dveře na WC", role_door: "dveře", role_window: "okno",
+    iWall: "{a} zasahuje do zdi nebo stojí mimo místnost",
+    iOverlap: "{a} a {b} se překrývají",
+    iFrontItems: "Před {a} chybí {cm} cm volného místa: překáží {list}",
+    iFrontWall: "Před {a} chybí {cm} cm volného místa: překáží zeď",
+    iOnFloor: "{a} stojí na podlaze. Postavte ho celý na stůl",
+    iTopOverlap: "{a} a {b} se na stole překrývají",
+    iDoorBlocked: "Nelze otevřít ({door}): překáží {list}",
+    iDoorSwing: "Křídlo dveří ({door}) zasahuje do místa pracovníka: {list}",
+    iNoEntry: "Chybí vstupní dveře do dílny. Přidejte je v části „Dveře a okna“",
+    iEntryNarrow: "Dveře do dílny mají {w} cm. Úniková cesta potřebuje alespoň 80 cm",
+    iEntryOk: "Dveře do dílny {w} cm — alespoň 80 cm",
+    iTooBig: "Dveřmi {w} cm neprojde: {list}",
+    iPathOk: "Od vstupu vede průchod široký {cm} cm, cíl: {door}",
+    iPathNo: "Od vstupu nevede průchod široký {cm} cm, cíl: {door}",
+    iReachNo: "K zařízení {a} se nelze dostat: je potřeba průchod alespoň {cm} cm",
+    iFree: "Volná plocha {v} m², je potřeba alespoň {need} m²",
+    iVol: "Objem {v} m³, je potřeba alespoň {need} m³",
+    iHeight: "Výška {v} m, pro plochu {a} m² je potřeba alespoň {need} m",
+    iPower: "Příkon v dílně je {v} kW, jeden okruh unese zhruba {lim} kW. Je potřeba více okruhů",
+    iHeavy: "{list}: více než 2 kW a běží dlouho. Potřebuje samostatný okruh",
+    iNoHandwash: "V dílně chybí umyvadlo na ruce",
+    iNoExt: "Chybí hasicí přístroj",
+    iToilet: "WC se otevírá přímo do dílny. Je potřeba předsíň nebo přesunutí dveří. Pokud předsíň už je, zaškrtněte to v kontrolním seznamu",
+    outsideLabel: "Zbytek místnosti (za sklem)", wsTitle: "Dílna {w} × {h} m = {a} m²",
+    winLbl: "okno", entryLbl: "vstup", doorLbl: "dveře", toiletLbl: "WC", extShort: "PHP",
+    stats: `Plocha <b>{a} m²</b> · volno <b>{f} m²</b> · objem <b>{v} m³</b> · příkon <b>{p} kW</b>
+     <br><span class="muted">Černá čára — strana, od které se pracuje. Šrafování — místo pro pracovníka. Zelený pás — hlavní průchod.</span>`,
+    reg_ws: "dílna", reg_out: "za sklem", reg_none: "ve zdi!",
+    selItem: "Vybraný předmět", selHint: "Klikněte na předmět v plánu a můžete změnit jeho rozměry, otočit ho nebo smazat.",
+    pName: "Název", pW: "Šířka, cm", pD: "Hloubka, cm", pH: "Výška, cm", pFront: "Místo před ním, cm", pKW: "Příkon, kW",
+    pKind: "Kde stojí", kFloor: "na podlaze", kTop: "na stole", kWall: "na zdi", pColor: "Barva",
+    pSurface: "lze na něj postavit další zařízení", pRot: "Otočení", copy: "Kopie", del: "Smazat", productPage: "Stránka produktu",
+    melNote: "Za přední stranu melanžéru považuji stranu širokou 68 cm. Pokud se mísa naklápí na jinou stranu, otočte ho.",
+    gKadzama: "Zařízení KADZAMA", gFurniture: "Nábytek a ostatní",
+    oWhat: "Co", oWall: "Stěna", wall_top: "stěna s oknem", wall_right: "pravá stěna", wall_bottom: "skleněná stěna", wall_left: "levá stěna",
+    oOff: "Odstup od rohu, cm", oW: "Šířka, cm", oSwing: "Otevírání", sw_in: "dovnitř", sw_out: "ven", sw_slide: "posuvné",
+    oHinge: "Panty", h_a: "na jedné straně", h_b: "na druhé straně",
+    opt_entry: "Vstup do dílny", opt_toilet: "Dveře na WC", opt_door: "Jiné dveře", opt_window: "Okno",
+    confirmReset: "Vrátit výchozí plán? Současný se ztratí, pokud jste ho neuložili do souboru.",
+    loadErr: "Soubor se nepodařilo otevřít. Je to opravdu soubor uložený z plánovače?",
+    fileBase: "dilna",
+  },
+};
+
+const LANG_KEY = "workshop-planner-lang";
+function pickLang() {
+  const q = new URLSearchParams(location.search).get("lang");
+  if (q && I18N[q]) return q;
+  const saved = localStorage.getItem(LANG_KEY);
+  if (saved && I18N[saved]) return saved;
+  const nav = (navigator.language || "").toLowerCase();
+  if (nav.startsWith("cs") || nav.startsWith("sk")) return "cs";
+  if (nav.startsWith("ru") || nav.startsWith("uk")) return "ru";
+  return "en";
+}
+let LANG = pickLang();
+function t(k, v = {}) {
+  const s = I18N[LANG][k] ?? I18N.ru[k] ?? k;
+  return s.replace(/\{(\w+)\}/g, (_, n) => v[n] ?? "");
+}
+function q(s) { return t("qL") + s + t("qR"); }
+function qList(items) { return items.map(i => q(nm(i))).join(", "); }
+function nm(it) {
+  const p = PRESETS.find(p => p.key === it.preset);
+  if (p && Object.values(p.names).includes(it.name)) return p.names[LANG];
+  return it.name;
+}
+function applyStatic() {
+  document.documentElement.lang = LANG;
+  document.title = t("title");
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-html]").forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+  document.getElementById("lang").value = LANG;
+}
+
 const PRESETS = [
-  { group: "Оборудование KADZAMA", key: "melanger", name: "Меланжер 35 кг", w: 68, d: 91, h: 110, kind: "floor", front: 70, kW: 2.2, color: "#a0703f", url: "https://kadzama.com/c/equipment/melanger-35-kg/" },
-  { group: "Оборудование KADZAMA", key: "crusher", name: "Дробилка с веялкой", w: 63, d: 56, h: 123, kind: "floor", front: 70, kW: 0.5, color: "#ca8a04", url: "https://kadzama.com/c/equipment/crusher-and-winnower-for-cocoa-beans/" },
-  { group: "Оборудование KADZAMA", key: "temper", name: "Темперирующая ванна 20 кг", w: 47, d: 54, h: 50, kind: "top", front: 0, kW: 0.3, color: "#0e7490", url: "https://kadzama.com/c/equipment/wheeled-chocolate-molding-machine/" },
-  { group: "Оборудование KADZAMA", key: "silk", name: "Mini SilkTemper", w: 21, d: 12.5, h: 13.5, kind: "top", front: 0, kW: 0.1, color: "#7c3aed", url: "https://kadzama.com/c/equipment/mini-incubator-for-cocoa-butter-crystals-easy-tempering-machine/" },
-  { group: "Оборудование KADZAMA", key: "vibro", name: "Вибростол", w: 66, d: 46, h: 30, kind: "top", front: 0, kW: 0.1, color: "#475569", url: "https://kadzama.com/c/equipment/vibrating-table/" },
-  { group: "Мебель и прочее", key: "table180", name: "Рабочий стол 180×60", w: 180, d: 60, h: 90, kind: "floor", surface: true, front: 60, kW: 0, color: "#cbd5e1" },
-  { group: "Мебель и прочее", key: "table120", name: "Стол 120×60", w: 120, d: 60, h: 90, kind: "floor", surface: true, front: 60, kW: 0, color: "#cbd5e1" },
-  { group: "Мебель и прочее", key: "fridge", name: "Холодильник", w: 60, d: 60, h: 185, kind: "floor", front: 60, kW: 0.2, color: "#93c5fd" },
-  { group: "Мебель и прочее", key: "shelf", name: "Стеллаж", w: 60, d: 40, h: 180, kind: "floor", front: 50, kW: 0, color: "#d6b98c" },
-  { group: "Мебель и прочее", key: "handwash", tag: "handwash", name: "Раковина для рук", w: 45, d: 35, h: 85, kind: "floor", front: 50, kW: 0, color: "#67e8f9" },
-  { group: "Мебель и прочее", key: "sink", tag: "sink", name: "Мойка для посуды", w: 80, d: 60, h: 90, kind: "floor", front: 60, kW: 0, color: "#22d3ee" },
-  { group: "Мебель и прочее", key: "dehum", name: "Осушитель воздуха", w: 35, d: 25, h: 55, kind: "floor", front: 0, kW: 0.3, color: "#a5b4fc" },
-  { group: "Мебель и прочее", key: "ext", tag: "extinguisher", name: "Огнетушитель", w: 20, d: 20, h: 60, kind: "wall", front: 0, kW: 0, color: "#ef4444" },
-  { group: "Мебель и прочее", key: "custom", name: "Своё оборудование", w: 50, d: 50, h: 90, kind: "floor", front: 60, kW: 0, color: "#9ca3af" },
+  { group: "gKadzama", key: "melanger", names: { ru: "Меланжер 35 кг", en: "Melanger 35 kg", cs: "Melanžér 35 kg" }, w: 68, d: 91, h: 110, kind: "floor", front: 70, kW: 2.2, color: "#a0703f", url: "https://kadzama.com/c/equipment/melanger-35-kg/" },
+  { group: "gKadzama", key: "crusher", names: { ru: "Дробилка с веялкой", en: "Crusher and winnower", cs: "Drtič se separátorem slupek" }, w: 63, d: 56, h: 123, kind: "floor", front: 70, kW: 0.5, color: "#ca8a04", url: "https://kadzama.com/c/equipment/crusher-and-winnower-for-cocoa-beans/" },
+  { group: "gKadzama", key: "temper", names: { ru: "Темперирующая ванна 20 кг", en: "Tempering machine 20 kg", cs: "Temperovací stroj 20 kg" }, w: 47, d: 54, h: 50, kind: "top", front: 0, kW: 0.3, color: "#0e7490", url: "https://kadzama.com/c/equipment/wheeled-chocolate-molding-machine/" },
+  { group: "gKadzama", key: "silk", names: { ru: "Mini SilkTemper", en: "Mini SilkTemper", cs: "Mini SilkTemper" }, w: 21, d: 12.5, h: 13.5, kind: "top", front: 0, kW: 0.1, color: "#7c3aed", url: "https://kadzama.com/c/equipment/mini-incubator-for-cocoa-butter-crystals-easy-tempering-machine/" },
+  { group: "gKadzama", key: "vibro", names: { ru: "Вибростол", en: "Vibrating table", cs: "Vibrační stůl" }, w: 66, d: 46, h: 30, kind: "top", front: 0, kW: 0.1, color: "#475569", url: "https://kadzama.com/c/equipment/vibrating-table/" },
+  { group: "gFurniture", key: "table180", names: { ru: "Рабочий стол 180×60", en: "Work table 180×60", cs: "Pracovní stůl 180×60" }, w: 180, d: 60, h: 90, kind: "floor", surface: true, front: 60, kW: 0, color: "#cbd5e1" },
+  { group: "gFurniture", key: "table120", names: { ru: "Стол 120×60", en: "Table 120×60", cs: "Stůl 120×60" }, w: 120, d: 60, h: 90, kind: "floor", surface: true, front: 60, kW: 0, color: "#cbd5e1" },
+  { group: "gFurniture", key: "fridge", names: { ru: "Холодильник", en: "Fridge", cs: "Lednice" }, w: 60, d: 60, h: 185, kind: "floor", front: 60, kW: 0.2, color: "#93c5fd" },
+  { group: "gFurniture", key: "shelf", names: { ru: "Стеллаж", en: "Shelving unit", cs: "Regál" }, w: 60, d: 40, h: 180, kind: "floor", front: 50, kW: 0, color: "#d6b98c" },
+  { group: "gFurniture", key: "handwash", tag: "handwash", names: { ru: "Раковина для рук", en: "Hand-wash basin", cs: "Umyvadlo na ruce" }, w: 45, d: 35, h: 85, kind: "floor", front: 50, kW: 0, color: "#67e8f9" },
+  { group: "gFurniture", key: "sink", tag: "sink", names: { ru: "Мойка для посуды", en: "Dishwashing sink", cs: "Dřez na nádobí" }, w: 80, d: 60, h: 90, kind: "floor", front: 60, kW: 0, color: "#22d3ee" },
+  { group: "gFurniture", key: "dehum", names: { ru: "Осушитель воздуха", en: "Dehumidifier", cs: "Odvlhčovač" }, w: 35, d: 25, h: 55, kind: "floor", front: 0, kW: 0.3, color: "#a5b4fc" },
+  { group: "gFurniture", key: "ext", tag: "extinguisher", names: { ru: "Огнетушитель", en: "Fire extinguisher", cs: "Hasicí přístroj" }, w: 20, d: 20, h: 60, kind: "wall", front: 0, kW: 0, color: "#ef4444" },
+  { group: "gFurniture", key: "custom", names: { ru: "Своё оборудование", en: "Custom equipment", cs: "Vlastní zařízení" }, w: 50, d: 50, h: 90, kind: "floor", front: 60, kW: 0, color: "#9ca3af" },
 ];
 
 const CHECKLIST = [
-  { id: "lobby", text: "Туалет не открывается прямо в мастерскую: между ними тамбур или отдельный вход", src: "852/2004, příloha II, kap. I, bod 3" },
-  { id: "handwash", text: "Раковина для рук в мастерской или у входа: горячая и холодная вода, мыло, одноразовые полотенца", src: "852/2004, příloha II, kap. I, bod 4" },
-  { id: "sink", text: "Отдельная мойка для посуды и деталей (чаша меланжера 50 л)", src: "852/2004, příloha II, kap. II, bod 2" },
-  { id: "surfaces", text: "Пол, стены и рабочие поверхности гладкие, моющиеся, непористые", src: "852/2004, příloha II, kap. II, bod 1" },
-  { id: "pests", text: "Сетки от насекомых на окнах, план борьбы с вредителями", src: "852/2004, příloha II, kap. II, bod 1 d)" },
-  { id: "climate", text: "Вентиляция или кондиционер; для шоколада около 18–20 °C и низкая влажность", src: "852/2004, příloha II, kap. I, bod 5; NV 361/2007 (микроклимат)" },
-  { id: "storage", text: "Бобы и сырьё хранятся отдельно от готовой продукции и не на полу", src: "852/2004, příloha II, kap. IX" },
-  { id: "haccp", text: "План HACCP и учёт партий (прослеживаемость)", src: "852/2004, čl. 5; 178/2002, čl. 18" },
-  { id: "szpi", text: "Регистрация производства до начала работы (SZPI)", src: "852/2004, čl. 6; zákon 110/1997 Sb." },
-  { id: "zdrav", text: "Медицинская книжка (zdravotní průkaz) у работника", src: "zákon 258/2000 Sb., § 19" },
-  { id: "ext", text: "Огнетушитель на видном и доступном месте, не сужает проход", src: "vyhl. 23/2008 Sb., § 13; vyhl. 246/2001 Sb." },
-  { id: "elec", text: "Отдельная линия для меланжера, розетки IP44 рядом с водой, ревизия электрики", src: "ČSN 33 2000, revize elektro" },
-  { id: "escape", text: "Путь к выходу всегда свободен, дверь не уже 80 см", src: "ČSN 73 0802 / 73 0804" },
-  { id: "firstaid", text: "Аптечка", src: "zákoník práce, § 102" },
+  { id: "lobby", src: "852/2004, příloha II, kap. I, bod 3", text: {
+    ru: "Туалет не открывается прямо в мастерскую: между ними тамбур или отдельный вход",
+    en: "The toilet does not open directly into the workshop: there is a lobby or a separate entrance",
+    cs: "WC se neotevírá přímo do dílny: mezi nimi je předsíň nebo samostatný vstup" } },
+  { id: "handwash", src: "852/2004, příloha II, kap. I, bod 4", text: {
+    ru: "Раковина для рук в мастерской или у входа: горячая и холодная вода, мыло, одноразовые полотенца",
+    en: "Hand-wash basin in the workshop or at its entrance: hot and cold water, soap, disposable towels",
+    cs: "Umyvadlo na ruce v dílně nebo u vstupu: teplá a studená voda, mýdlo, jednorázové ručníky" } },
+  { id: "sink", src: "852/2004, příloha II, kap. II, bod 2", text: {
+    ru: "Отдельная мойка для посуды и деталей (чаша меланжера 50 л)",
+    en: "Separate sink for dishes and parts (the melanger bowl is 50 l)",
+    cs: "Samostatný dřez na nádobí a díly (mísa melanžéru má 50 l)" } },
+  { id: "surfaces", src: "852/2004, příloha II, kap. II, bod 1", text: {
+    ru: "Пол, стены и рабочие поверхности гладкие, моющиеся, непористые",
+    en: "Floor, walls and work surfaces are smooth, washable and non-absorbent",
+    cs: "Podlaha, stěny a pracovní plochy jsou hladké, omyvatelné a nesavé" } },
+  { id: "pests", src: "852/2004, příloha II, kap. II, bod 1 d)", text: {
+    ru: "Сетки от насекомых на окнах, план борьбы с вредителями",
+    en: "Insect screens on windows, pest control plan",
+    cs: "Sítě proti hmyzu na oknech, plán ochrany proti škůdcům" } },
+  { id: "climate", src: "852/2004, příloha II, kap. I, bod 5; NV 361/2007 (mikroklima)", text: {
+    ru: "Вентиляция или кондиционер; для шоколада около 18–20 °C и низкая влажность",
+    en: "Ventilation or air conditioning; chocolate needs about 18–20 °C and low humidity",
+    cs: "Větrání nebo klimatizace; čokoláda potřebuje kolem 18–20 °C a nízkou vlhkost" } },
+  { id: "storage", src: "852/2004, příloha II, kap. IX", text: {
+    ru: "Бобы и сырьё хранятся отдельно от готовой продукции и не на полу",
+    en: "Beans and raw materials are stored apart from finished products and off the floor",
+    cs: "Boby a suroviny se skladují odděleně od hotových výrobků a ne na podlaze" } },
+  { id: "haccp", src: "852/2004, čl. 5; 178/2002, čl. 18", text: {
+    ru: "План HACCP и учёт партий (прослеживаемость)",
+    en: "HACCP plan and batch records (traceability)",
+    cs: "Plán HACCP a evidence šarží (sledovatelnost)" } },
+  { id: "szpi", src: "852/2004, čl. 6; zákon 110/1997 Sb.", text: {
+    ru: "Регистрация производства до начала работы (SZPI)",
+    en: "Food business registered before production starts (SZPI)",
+    cs: "Registrace výroby před zahájením činnosti (SZPI)" } },
+  { id: "zdrav", src: "zákon 258/2000 Sb., § 19", text: {
+    ru: "Медицинская книжка (zdravotní průkaz) у работника",
+    en: "Health certificate (zdravotní průkaz) for the worker",
+    cs: "Zdravotní průkaz pracovníka" } },
+  { id: "ext", src: "vyhl. 23/2008 Sb., § 13; vyhl. 246/2001 Sb.", text: {
+    ru: "Огнетушитель на видном и доступном месте, не сужает проход",
+    en: "Fire extinguisher is visible and accessible and does not narrow the walkway",
+    cs: "Hasicí přístroj na viditelném a přístupném místě, nezužuje průchod" } },
+  { id: "elec", src: "ČSN 33 2000, revize elektro", text: {
+    ru: "Отдельная линия для меланжера, розетки IP44 рядом с водой, ревизия электрики",
+    en: "Dedicated circuit for the melanger, IP44 sockets near water, electrical inspection (revize)",
+    cs: "Samostatný okruh pro melanžér, zásuvky IP44 u vody, revize elektro" } },
+  { id: "escape", src: "ČSN 73 0802 / 73 0804", text: {
+    ru: "Путь к выходу всегда свободен, дверь не уже 80 см",
+    en: "The way to the exit is always clear, the door is at least 80 cm",
+    cs: "Cesta k východu je vždy volná, dveře mají alespoň 80 cm" } },
+  { id: "firstaid", src: "zákoník práce, § 102", text: { ru: "Аптечка", en: "First-aid kit", cs: "Lékárnička" } },
 ];
 
 function uid() { return Math.random().toString(36).slice(2, 9); }
 function fromPreset(key, x, y, rot = 0) {
   const p = PRESETS.find(p => p.key === key);
-  const { group, key: _k, ...rest } = p;
-  return { id: uid(), preset: key, ...rest, x, y, rot };
+  const { group, key: _k, names, ...rest } = p;
+  return { id: uid(), preset: key, name: names[LANG], ...rest, x, y, rot };
 }
 
 const DEFAULT_PLAN = {
@@ -473,56 +733,55 @@ function simplify(pts) {
 }
 
 // ---------- проверки ----------
-const ROLE_NAMES = { entry: "вход в мастерскую", toilet: "дверь в туалет", door: "дверь", window: "окно" };
+function roleName(op) { return t("role_" + (op.role || "door")); }
 function analyze() {
   const R = S.room, st = S.settings, issues = [], bad = {};
   const mark = (id, lvl) => { if (bad[id] !== "err") bad[id] = lvl; };
-  const add = (lvl, text, ids = [], src = "") => { issues.push({ lvl, text, ids, src }); ids.forEach(id => mark(id, lvl)); };
+  const add = (lvl, text, ids = [], src = "", zone = false) => { issues.push({ lvl, text, ids, src, zone }); ids.forEach(id => mark(id, lvl)); };
   const regs = {};
   S.items.forEach(it => { regs[it.id] = regionOf(it); });
   const floor = S.items.filter(i => i.kind === "floor");
   const tops = S.items.filter(i => i.kind === "top");
   const wsFloor = floor.filter(i => regs[i.id] === "ws");
 
-  for (const it of S.items) if (!regs[it.id]) add("err", `«${it.name}» пересекает стену или стоит за пределами помещения`, [it.id]);
+  for (const it of S.items) if (!regs[it.id]) add("err", t("iWall", { a: q(nm(it)) }), [it.id]);
 
   for (let i = 0; i < floor.length; i++) for (let j = i + 1; j < floor.length; j++) {
     const a = floor[i], b = floor[j];
-    if (ov(fp(a), fp(b))) add("err", `«${a.name}» и «${b.name}» наезжают друг на друга`, [a.id, b.id]);
+    if (ov(fp(a), fp(b))) add("err", t("iOverlap", { a: q(nm(a)), b: q(nm(b)) }), [a.id, b.id]);
   }
   for (const a of floor) {
     const z = svc(a); if (!z || !regs[a.id]) continue;
     const reg = regs[a.id] === "ws" ? WS() : OUT();
     const blockers = floor.filter(b => b !== a && ov(z, fp(b)));
-    if (blockers.length) add("warn", `Перед «${a.name}» нет ${a.front} см свободного места: мешает ${blockers.map(b => "«" + b.name + "»").join(", ")}`, [a.id, ...blockers.map(b => b.id)]);
-    else if (!inside(z, reg)) add("warn", `Перед «${a.name}» нет ${a.front} см свободного места: мешает стена`, [a.id]);
+    if (blockers.length) add("warn", t("iFrontItems", { a: q(nm(a)), cm: a.front, list: qList(blockers) }), [a.id, ...blockers.map(b => b.id)], "", true);
+    else if (!inside(z, reg)) add("warn", t("iFrontWall", { a: q(nm(a)), cm: a.front }), [a.id], "", true);
   }
 
   const surfaces = floor.filter(i => i.surface);
-  for (const t of tops) {
-    if (!surfaces.some(s => inside(fp(t), fp(s)))) add("warn", `«${t.name}» стоит на полу. Поставьте на стол целиком`, [t.id]);
+  for (const tp of tops) {
+    if (!surfaces.some(s => inside(fp(tp), fp(s)))) add("warn", t("iOnFloor", { a: q(nm(tp)) }), [tp.id]);
   }
   for (let i = 0; i < tops.length; i++) for (let j = i + 1; j < tops.length; j++) {
-    if (ov(fp(tops[i]), fp(tops[j]))) add("err", `«${tops[i].name}» и «${tops[j].name}» наезжают друг на друга на столе`, [tops[i].id, tops[j].id]);
+    if (ov(fp(tops[i]), fp(tops[j]))) add("err", t("iTopOverlap", { a: q(nm(tops[i])), b: q(nm(tops[j])) }), [tops[i].id, tops[j].id]);
   }
 
   S.openings.forEach(op => {
     const z = doorZone(op); if (!z) return;
-    const name = ROLE_NAMES[op.role] || "дверь";
     const hit = floor.filter(b => ov(z, fp(b)));
-    if (hit.length) add("err", `Не открыть ${name}: мешает ${hit.map(b => "«" + b.name + "»").join(", ")}`, hit.map(b => b.id));
+    if (hit.length) add("err", t("iDoorBlocked", { door: roleName(op), list: qList(hit) }), hit.map(b => b.id));
     const zs = floor.filter(b => { const s = svc(b); return s && ov(z, s); });
-    if (zs.length) add("warn", `${name[0].toUpperCase() + name.slice(1)} открывается туда, где стоит работник (${zs.map(b => "«" + b.name + "»").join(", ")})`, zs.map(b => b.id));
+    if (zs.length) add("warn", t("iDoorSwing", { door: roleName(op), list: qList(zs) }), zs.map(b => b.id));
   });
 
   const entryIdx = S.openings.findIndex(o => o.role === "entry" && o.kind === "door");
   const entry = S.openings[entryIdx];
-  if (!entry) add("err", "Нет входной двери в мастерскую. Добавьте её в разделе «Двери и окна»");
+  if (!entry) add("err", t("iNoEntry"));
   else {
-    if (entry.w < 80) add("warn", `Дверь в мастерскую ${entry.w} см. Для пути эвакуации нужно не меньше 80 см`, [], "ČSN 73 0802");
-    else add("ok", `Дверь в мастерскую ${entry.w} см — не меньше 80 см`, [], "ČSN 73 0802");
+    if (entry.w < 80) add("warn", t("iEntryNarrow", { w: entry.w }), [], "ČSN 73 0802");
+    else add("ok", t("iEntryOk", { w: entry.w }), [], "ČSN 73 0802");
     const tooBig = wsFloor.filter(i => Math.min(i.w, i.d) > entry.w - 2);
-    if (tooBig.length) add("warn", `Через дверь ${entry.w} см не пронести: ${tooBig.map(b => "«" + b.name + "»").join(", ")}`, tooBig.map(b => b.id));
+    if (tooBig.length) add("warn", t("iTooBig", { w: entry.w, list: qList(tooBig) }), tooBig.map(b => b.id));
   }
 
   const G = gridAnalysis(wsFloor.map(fp));
@@ -531,16 +790,16 @@ function analyze() {
     S.openings.forEach((op, idx) => {
       if (op.kind !== "door" || idx === entryIdx) return;
       const r = G.bfs(entryIdx, k => G.appr[k] === idx, st.passMin);
-      const name = ROLE_NAMES[op.role] || "дверь";
-      if (r.found) { paths.main.push(r.path); add("ok", `Проход шириной ${st.passMin} см от входа до «${name}» есть`, [], "NV 361/2007 § 48; NV 101/2005"); }
-      else add("err", `Нет прохода шириной ${st.passMin} см от входа до «${name}»`, [], "NV 361/2007 § 48; NV 101/2005");
+      const vars = { cm: st.passMin, door: roleName(op) };
+      if (r.found) { paths.main.push(r.path); add("ok", t("iPathOk", vars), [], "NV 361/2007 § 48; NV 101/2005"); }
+      else add("err", t("iPathNo", vars), [], "NV 361/2007 § 48; NV 101/2005");
     });
     for (const it of wsFloor) {
       const z = svc(it); if (!z) continue;
       const m = G.markRect(z);
       const r = G.bfs(entryIdx, k => m[k] === 1, st.reachMin);
       if (r.found) paths.reach[it.id] = r.path;
-      else add("err", `К «${it.name}» не подойти: нужен проход не уже ${st.reachMin} см`, [it.id]);
+      else add("err", t("iReachNo", { a: q(nm(it)), cm: st.reachMin }), [it.id], "", true);
     }
     if (S.view.showReach) paths.reachMask = { prev: G.bfs(entryIdx, () => false, st.reachMin).prev, G };
   }
@@ -549,31 +808,31 @@ function analyze() {
   const occArea = wsFloor.reduce((s, i) => s + area(fp(i)), 0);
   const free = (wsArea - occArea) / 1e4;
   const needFree = 2 * st.persons;
-  add(free >= needFree ? "ok" : "err", `Свободная площадь ${fmt(free)} м², нужно не меньше ${fmt(needFree, 1)} м²`, [], "NV 361/2007 § 48");
+  add(free >= needFree ? "ok" : "err", t("iFree", { v: fmt(free), need: fmt(needFree, 1) }), [], "NV 361/2007 § 48");
 
   const vol = wsArea * R.H / 1e6, needVol = st.workClass * st.persons;
-  add(vol >= needVol ? "ok" : "err", `Объём ${fmt(vol, 1)} м³, нужно не меньше ${needVol} м³`, [], "NV 361/2007 § 47");
+  add(vol >= needVol ? "ok" : "err", t("iVol", { v: fmt(vol, 1), need: needVol }), [], "NV 361/2007 § 47");
 
   const a2 = wsArea / 1e4;
   const needH = a2 <= 20 ? 250 : a2 <= 50 ? 260 : a2 <= 100 ? 270 : a2 <= 2000 ? 300 : 325;
-  add(R.H >= needH ? "ok" : "err", `Высота ${fmt(R.H / 100)} м, для площади ${fmt(a2, 1)} м² нужно не меньше ${fmt(needH / 100)} м`, [], "NV 361/2007 § 46");
+  add(R.H >= needH ? "ok" : "err", t("iHeight", { v: fmt(R.H / 100), a: fmt(a2, 1), need: fmt(needH / 100) }), [], "NV 361/2007 § 46");
 
   const kW = S.items.filter(i => regs[i.id] === "ws").reduce((s, i) => s + (+i.kW || 0), 0);
-  if (kW > st.circuitKW) add("warn", `Мощность в мастерской ${fmt(kW, 1)} кВт, а одна линия выдерживает около ${fmt(st.circuitKW, 1)} кВт. Нужно несколько линий`);
+  if (kW > st.circuitKW) add("warn", t("iPower", { v: fmt(kW, 1), lim: fmt(st.circuitKW, 1) }));
   const heavy = S.items.filter(i => (+i.kW || 0) >= 2);
-  if (heavy.length) add("info", `${heavy.map(b => "«" + b.name + "»").join(", ")}: больше 2 кВт и долго работает. Нужна отдельная линия`, heavy.map(b => b.id));
+  if (heavy.length) add("info", t("iHeavy", { list: qList(heavy) }), heavy.map(b => b.id));
 
   const wsItems = S.items.filter(i => regs[i.id] === "ws");
-  if (!wsItems.some(i => i.tag === "handwash")) add("warn", "В мастерской нет раковины для рук", [], "852/2004, příloha II, kap. I, bod 4");
-  if (!S.items.some(i => i.tag === "extinguisher")) add("warn", "Нет огнетушителя", [], "vyhl. 23/2008 Sb.");
+  if (!wsItems.some(i => i.tag === "handwash")) add("warn", t("iNoHandwash"), [], "852/2004, příloha II, kap. I, bod 4");
+  if (!S.items.some(i => i.tag === "extinguisher")) add("warn", t("iNoExt"), [], "vyhl. 23/2008 Sb.");
   if (S.openings.some(o => o.role === "toilet") && !S.checklist.lobby)
-    add("err", "Туалет открывается прямо в мастерскую. Нужен тамбур или перенос двери. Если тамбур уже есть, отметьте это в чек-листе", [], "852/2004, příloha II, kap. I, bod 3");
+    add("err", t("iToilet"), [], "852/2004, příloha II, kap. I, bod 3");
 
   const order = { err: 0, warn: 1, info: 2, ok: 3 };
   issues.sort((a, b) => order[a.lvl] - order[b.lvl]);
   return { issues, bad, regs, paths, stats: { wsArea: a2, free, vol, kW } };
 }
-function fmt(n, dg = 2) { return (+n).toFixed(dg).replace(".", ","); }
+function fmt(n, dg = 2) { const s = (+n).toFixed(dg); return LANG === "en" ? s : s.replace(".", ","); }
 function esc(s) { return String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch])); }
 
 // ---------- рисование ----------
@@ -620,15 +879,15 @@ function render() {
   if (showOut) {
     const o = OUT();
     h += `<rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" fill="#f7f7f8"/><rect x="${o.x}" y="${o.y}" width="${o.w}" height="${o.h}" fill="url(#grid50)" opacity=".6"/>`;
-    h += `<text x="${R.w / 2}" y="${o.y + o.h - 10}" text-anchor="middle" font-size="9" fill="#9ca3af">Остальная часть комнаты (за стеклом)</text>`;
+    h += `<text x="${R.w / 2}" y="${o.y + o.h - 10}" text-anchor="middle" font-size="9" fill="#9ca3af">${esc(t("outsideLabel"))}</text>`;
   }
   h += `<rect x="0" y="${R.h}" width="${R.w}" height="${GLASS}" fill="#bae6fd" stroke="#38bdf8" stroke-width=".8"/>`;
   if (!showOut) h += `<rect x="${-WALL}" y="${R.h + GLASS}" width="${R.w + 2 * WALL}" height="10" fill="#e9ebef"/>`;
 
   // размеры помещения
-  h += dimLine(0, -WALL - 14, R.w, -WALL - 14, `${R.w} см`, true);
-  h += dimLine(-WALL - 14, 0, -WALL - 14, R.h, `${R.h} см`, true);
-  h += `<text x="${R.w / 2}" y="${-WALL - 26}" text-anchor="middle" font-size="9" font-weight="600" fill="#374151">Мастерская ${fmt(R.w / 100)} × ${fmt(R.h / 100)} м = ${fmt(A.stats.wsArea, 1)} м²</text>`;
+  h += dimLine(0, -WALL - 14, R.w, -WALL - 14, `${R.w} ${t("cm")}`, true);
+  h += dimLine(-WALL - 14, 0, -WALL - 14, R.h, `${R.h} ${t("cm")}`, true);
+  h += `<text x="${R.w / 2}" y="${-WALL - 26}" text-anchor="middle" font-size="9" font-weight="600" fill="#374151">${esc(t("wsTitle", { w: fmt(R.w / 100), h: fmt(R.h / 100), a: fmt(A.stats.wsArea, 1) }))}</text>`;
 
   // двери и окна
   S.openings.forEach(op => { h += drawOpening(op); });
@@ -661,7 +920,7 @@ function render() {
   // зоны обслуживания
   if (S.view.showZones) for (const it of S.items) {
     const z = svc(it); if (!z) continue;
-    const isBad = A.bad[it.id] && A.issues.some(i => i.ids.includes(it.id) && /места|подойти/.test(i.text));
+    const isBad = A.issues.some(i => i.zone && i.ids.includes(it.id));
     h += `<rect x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" fill="url(#${isBad ? "hatchR" : "hatch"})" stroke="${isBad ? "#dc2626" : "#60a5fa"}" stroke-width=".6" stroke-dasharray="3 2" pointer-events="none"/>`;
   }
 
@@ -703,7 +962,7 @@ function drawOpening(op) {
       : `<line x1="${gap.x + gap.w / 2}" y1="${gap.y}" x2="${gap.x + gap.w / 2}" y2="${gap.y + gap.h}" stroke="#0ea5e9" stroke-width=".8"/>`;
     const lx = horiz ? m1[0] : (op.wall === "left" ? -WALL - 4 : S.room.w + WALL + 4);
     const ly = horiz ? (op.wall === "top" ? -WALL - 3 : m1[1] + 14) : m1[1];
-    s += `<text x="${lx}" y="${ly}" font-size="6.5" text-anchor="${horiz ? "middle" : op.wall === "left" ? "end" : "start"}" fill="#0369a1">окно ${op.w}</text>`;
+    s += `<text x="${lx}" y="${ly}" font-size="6.5" text-anchor="${horiz ? "middle" : op.wall === "left" ? "end" : "start"}" fill="#0369a1">${t("winLbl")} ${op.w}</text>`;
     return s;
   }
   let s = `<rect x="${gap.x}" y="${gap.y}" width="${gap.w}" height="${gap.h}" fill="${op.wall === "bottom" ? "#fff" : "#fff"}"/>`;
@@ -723,7 +982,7 @@ function drawOpening(op) {
     s += `<path d="M${L[0]} ${L[1]} A${op.w} ${op.w} 0 0 ${sweep} ${P1[0]} ${P1[1]}" fill="none" stroke="${color}" stroke-width=".7" stroke-dasharray="3 2"/>`;
   }
   const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
-  const name = op.role === "entry" ? `вход ${op.w}` : op.role === "toilet" ? `WC ${op.w}` : `дверь ${op.w}`;
+  const name = op.role === "entry" ? `${t("entryLbl")} ${op.w}` : op.role === "toilet" ? `WC ${op.w}` : `${t("doorLbl")} ${op.w}`;
   let lx = mid[0], ly = mid[1], anchor = "middle";
   const outExtra = op.swing === "out" ? op.w : 0;
   if (op.wall === "right") { lx = S.room.w + WALL + 4 + outExtra; anchor = "start"; }
@@ -732,7 +991,7 @@ function drawOpening(op) {
   else ly = S.room.h + GLASS + outExtra + 9;
   s += `<text x="${lx}" y="${ly}" font-size="7" font-weight="600" text-anchor="${anchor}" fill="${color}" class="lbl">${name}</text>`;
   if (op.role === "toilet" && op.wall === "right") {
-    s += `<text x="${lx}" y="${op.off + op.w / 2 + 9}" font-size="6" fill="#92400e">туалет</text>`;
+    s += `<text x="${lx}" y="${op.off + op.w / 2 + 9}" font-size="6" fill="#92400e">${t("toiletLbl")}</text>`;
   }
   return s;
 }
@@ -743,8 +1002,8 @@ function drawItem(it, A) {
     const cx = f.x + f.w / 2, cy = f.y + f.h / 2, r = Math.min(f.w, f.h) / 2;
     return `<g data-id="${it.id}" style="cursor:move">
       <circle cx="${cx}" cy="${cy}" r="${r}" fill="${it.color}" stroke="${isSel ? "#2563eb" : stroke}" stroke-width="${isSel ? 2 : 1}"/>
-      <text x="${cx}" y="${cy + 2.5}" font-size="7" text-anchor="middle" fill="#fff" font-weight="700" pointer-events="none">${it.tag === "extinguisher" ? "PHP" : "•"}</text>
-      <text x="${cx}" y="${f.y - 2}" font-size="6" text-anchor="middle" fill="#7f1d1d" class="lbl" pointer-events="none">${esc(it.name)}</text>
+      <text x="${cx}" y="${cy + 2.5}" font-size="7" text-anchor="middle" fill="#fff" font-weight="700" pointer-events="none">${it.tag === "extinguisher" ? t("extShort") : "•"}</text>
+      <text x="${cx}" y="${f.y - 2}" font-size="6" text-anchor="middle" fill="#7f1d1d" class="lbl" pointer-events="none">${esc(nm(it))}</text>
     </g>`;
   }
   const dimTxt = `${it.w}×${it.d}${it.h ? "×" + it.h : ""}`;
@@ -754,13 +1013,14 @@ function drawItem(it, A) {
     <rect x="${f.x}" y="${f.y}" width="${f.w}" height="${f.h}" rx="1.5" fill="${it.color}" fill-opacity="${op}" stroke="${isSel ? "#2563eb" : stroke}" stroke-width="${isSel ? 2 : b ? 1.6 : 0.8}"/>`;
   if (it.kind === "floor" && it.front > 0) s += `<line x1="${fe[0]}" y1="${fe[1]}" x2="${fe[2]}" y2="${fe[3]}" stroke="#111827" stroke-width="2.2" pointer-events="none"/>`;
   if (childrenOf(it).length) {
-    s += `<text x="${f.x + 3}" y="${f.y + f.h - 4}" font-size="5.5" fill="#374151" class="lbl" pointer-events="none">${esc(it.name)} · ${dimTxt}</text></g>`;
+    s += `<text x="${f.x + 3}" y="${f.y + f.h - 4}" font-size="5.5" fill="#374151" class="lbl" pointer-events="none">${esc(nm(it))} · ${dimTxt}</text></g>`;
     return s;
   }
+  const name = nm(it);
   let fs = Math.max(4, Math.min(8, Math.min(f.w, f.h) / 4.5));
-  const longest = Math.max(...String(it.name).split(/\s+/).map(w => w.length));
+  const longest = Math.max(...String(name).split(/\s+/).map(w => w.length));
   fs = Math.max(3.5, Math.min(fs, (f.w * 0.92) / (longest * 0.58)));
-  const lines = wrap(it.name, Math.max(4, Math.floor(f.w / (fs * 0.58))));
+  const lines = wrap(name, Math.max(4, Math.floor(f.w / (fs * 0.58))));
   const total = lines.length + 1, cy = f.y + f.h / 2 - (total - 1) * fs * 0.6;
   lines.forEach((ln, i) => {
     s += `<text x="${f.x + f.w / 2}" y="${cy + i * fs * 1.15 + fs * 0.35}" font-size="${fs}" font-weight="600" text-anchor="middle" fill="#111827" class="lbl" pointer-events="none">${esc(ln)}</text>`;
@@ -809,50 +1069,49 @@ function renderIssues(A) {
 function renderStats(A) {
   const st = A.stats;
   document.getElementById("stats").innerHTML =
-    `Площадь <b>${fmt(st.wsArea)} м²</b> · свободно <b>${fmt(st.free)} м²</b> · объём <b>${fmt(st.vol, 1)} м³</b> · мощность <b>${fmt(st.kW, 1)} кВт</b>
-     <br><span class="muted">Чёрная линия — сторона, с которой работают. Штриховка — место для работника. Зелёная полоса — главный проход.</span>`;
+    t("stats", { a: fmt(st.wsArea), f: fmt(st.free), v: fmt(st.vol, 1), p: fmt(st.kW, 1) });
 }
 function renderList(A) {
-  const regName = { ws: "мастерская", out: "за стеклом" };
   document.getElementById("itemList").innerHTML = S.items.map(it =>
-    `<div data-sel="${it.id}" class="${it.id === sel ? "sel" : ""}"><span class="sw" style="background:${it.color}"></span>${esc(it.name)}
-      <small class="${A.regs[it.id] ? "" : "bad"}">${A.regs[it.id] ? regName[A.regs[it.id]] : "в стене!"}</small></div>`).join("");
+    `<div data-sel="${it.id}" class="${it.id === sel ? "sel" : ""}"><span class="sw" style="background:${it.color}"></span>${esc(nm(it))}
+      <small class="${A.regs[it.id] ? "" : "bad"}">${t(A.regs[it.id] ? "reg_" + A.regs[it.id] : "reg_none")}</small></div>`).join("");
 }
 function renderProps() {
   const box = document.getElementById("props");
   const it = S.items.find(i => i.id === sel);
   if (propsFor !== (it ? it.id : null)) {
     propsFor = it ? it.id : null;
-    if (!it) { box.innerHTML = `<h2>Выбранный предмет</h2><p class="muted">Кликните по предмету на плане, чтобы изменить его размеры, повернуть или удалить.</p>`; return; }
-    box.innerHTML = `<h2>Выбранный предмет</h2>
-      <label>Название<input data-f="name" type="text"></label>
+    if (!it) { box.innerHTML = `<h2>${t("selItem")}</h2><p class="muted">${t("selHint")}</p>`; return; }
+    const cm = t("cm");
+    box.innerHTML = `<h2>${t("selItem")}</h2>
+      <label>${t("pName")}<input data-f="name" type="text"></label>
       <div class="row3">
-        <label>Ширина, см<input data-f="w" type="number" step="0.5" min="1"></label>
-        <label>Глубина, см<input data-f="d" type="number" step="0.5" min="1"></label>
-        <label>Высота, см<input data-f="h" type="number" step="1" min="0"></label>
+        <label>${t("pW")}<input data-f="w" type="number" step="0.5" min="1"></label>
+        <label>${t("pD")}<input data-f="d" type="number" step="0.5" min="1"></label>
+        <label>${t("pH")}<input data-f="h" type="number" step="1" min="0"></label>
       </div>
       <div class="row">
-        <label>Место перед ним, см<input data-f="front" type="number" step="5" min="0"></label>
-        <label>Мощность, кВт<input data-f="kW" type="number" step="0.1" min="0"></label>
+        <label>${t("pFront")}<input data-f="front" type="number" step="5" min="0"></label>
+        <label>${t("pKW")}<input data-f="kW" type="number" step="0.1" min="0"></label>
       </div>
       <div class="row">
-        <label>Где стоит
-          <select data-f="kind"><option value="floor">на полу</option><option value="top">на столе</option><option value="wall">на стене</option></select>
+        <label>${t("pKind")}
+          <select data-f="kind"><option value="floor">${t("kFloor")}</option><option value="top">${t("kTop")}</option><option value="wall">${t("kWall")}</option></select>
         </label>
-        <label>Цвет<input data-f="color" type="color"></label>
+        <label>${t("pColor")}<input data-f="color" type="color"></label>
       </div>
-      <label class="inline"><input data-f="surface" type="checkbox"> на него можно ставить другое оборудование</label>
+      <label class="inline"><input data-f="surface" type="checkbox"> ${t("pSurface")}</label>
       <div class="row3">
-        <label>X, см<input data-f="x" type="number" step="1"></label>
-        <label>Y, см<input data-f="y" type="number" step="1"></label>
-        <label>Поворот<input data-f="rot" type="text" readonly></label>
+        <label>X, ${cm}<input data-f="x" type="number" step="1"></label>
+        <label>Y, ${cm}<input data-f="y" type="number" step="1"></label>
+        <label>${t("pRot")}<input data-f="rot" type="text" readonly></label>
       </div>
       <div class="btns">
         <button data-act="rotL">↺ 90°</button><button data-act="rotR">↻ 90°</button>
-        <button data-act="dup">Копия</button><button data-act="del" class="danger">Удалить</button>
+        <button data-act="dup">${t("copy")}</button><button data-act="del" class="danger">${t("del")}</button>
       </div>
-      ${it.url ? `<p><a href="${esc(it.url)}" target="_blank" rel="noopener">Страница товара</a></p>` : ""}
-      ${it.preset === "melanger" ? `<p class="muted">Я считаю передом меланжера сторону шириной 68 см. Если чаша наклоняется в другую сторону, поверните его.</p>` : ""}`;
+      ${it.url ? `<p><a href="${esc(it.url)}" target="_blank" rel="noopener">${t("productPage")}</a></p>` : ""}
+      ${it.preset === "melanger" ? `<p class="muted">${t("melNote")}</p>` : ""}`;
   }
   if (!it) return;
   box.querySelectorAll("[data-f]").forEach(inp => {
@@ -860,6 +1119,7 @@ function renderProps() {
     const f = inp.dataset.f;
     if (inp.type === "checkbox") inp.checked = !!it[f];
     else if (f === "rot") inp.value = it.rot + "°";
+    else if (f === "name") inp.value = nm(it);
     else inp.value = it[f] ?? "";
   });
 }
@@ -868,8 +1128,8 @@ function buildPalette() {
   const groups = {};
   PRESETS.forEach(p => (groups[p.group] ||= []).push(p));
   document.getElementById("palette").innerHTML = Object.entries(groups).map(([g, list]) =>
-    `<div class="muted" style="margin-top:4px">${g}</div>` + list.map(p =>
-      `<button data-add="${p.key}"><span class="sw" style="background:${p.color}"></span>${esc(p.name)}<small>${p.w}×${p.d}</small></button>`).join("")).join("");
+    `<div class="muted" style="margin-top:4px">${t(g)}</div>` + list.map(p =>
+      `<button data-add="${p.key}"><span class="sw" style="background:${p.color}"></span>${esc(p.names[LANG])}<small>${p.w}×${p.d}</small></button>`).join("")).join("");
 }
 function buildSettings() {
   document.querySelectorAll("[data-room]").forEach(i => { i.value = S.room[i.dataset.room]; });
@@ -877,24 +1137,22 @@ function buildSettings() {
   document.querySelectorAll("[data-view]").forEach(i => { i.checked = !!S.view[i.dataset.view]; });
 }
 function buildOpenings() {
-  const wallNames = { top: "стена с окном", right: "правая стена", bottom: "стеклянная стенка", left: "левая стена" };
+  const opts = (keys, prefix) => keys.map(k => `<option value="${k}">${t(prefix + k)}</option>`).join("");
   document.getElementById("openings").innerHTML = S.openings.map(op => `
     <div class="op" data-op="${op.id}">
       <div class="row">
-        <label>Что<select data-o="role">
-          <option value="entry">Вход в мастерскую</option><option value="toilet">Дверь в туалет</option>
-          <option value="door">Другая дверь</option><option value="window">Окно</option></select></label>
-        <label>Стена<select data-o="wall">${Object.entries(wallNames).map(([k, v]) => `<option value="${k}">${v}</option>`).join("")}</select></label>
+        <label>${t("oWhat")}<select data-o="role">${opts(["entry", "toilet", "door", "window"], "opt_")}</select></label>
+        <label>${t("oWall")}<select data-o="wall">${opts(["top", "right", "bottom", "left"], "wall_")}</select></label>
       </div>
       <div class="row">
-        <label>Отступ от угла, см<input data-o="off" type="number" step="1" min="0"></label>
-        <label>Ширина, см<input data-o="w" type="number" step="1" min="10"></label>
+        <label>${t("oOff")}<input data-o="off" type="number" step="1" min="0"></label>
+        <label>${t("oW")}<input data-o="w" type="number" step="1" min="10"></label>
       </div>
       ${op.kind === "door" ? `<div class="row">
-        <label>Открывается<select data-o="swing"><option value="in">внутрь</option><option value="out">наружу</option><option value="slide">раздвижная</option></select></label>
-        <label>Петли<select data-o="hinge"><option value="a">с одной стороны</option><option value="b">с другой стороны</option></select></label>
+        <label>${t("oSwing")}<select data-o="swing">${opts(["in", "out", "slide"], "sw_")}</select></label>
+        <label>${t("oHinge")}<select data-o="hinge">${opts(["a", "b"], "h_")}</select></label>
       </div>` : ""}
-      <button data-delop="${op.id}" class="danger">Удалить</button>
+      <button data-delop="${op.id}" class="danger">${t("del")}</button>
     </div>`).join("");
   document.querySelectorAll("#openings .op").forEach(div => {
     const op = S.openings.find(o => o.id === div.dataset.op);
@@ -903,7 +1161,7 @@ function buildOpenings() {
 }
 function buildChecklist() {
   document.getElementById("checklist").innerHTML = CHECKLIST.map(c =>
-    `<label><input type="checkbox" data-chk="${c.id}" ${S.checklist[c.id] ? "checked" : ""}><span>${esc(c.text)}<small>${esc(c.src)}</small></span></label>`).join("");
+    `<label><input type="checkbox" data-chk="${c.id}" ${S.checklist[c.id] ? "checked" : ""}><span>${esc(c.text[LANG])}<small>${esc(c.src)}</small></span></label>`).join("");
 }
 
 // ---------- действия ----------
@@ -1064,13 +1322,13 @@ document.getElementById("checklist").addEventListener("change", e => {
 
 document.getElementById("bUndo").onclick = undo;
 document.getElementById("bReset").onclick = () => {
-  if (!confirm("Вернуть стартовую расстановку? Текущая будет потеряна, если вы её не сохранили в файл.")) return;
+  if (!confirm(t("confirmReset"))) return;
   pushHist(); S = defaultState(); sel = null; propsFor = undefined;
   buildSettings(); buildOpenings(); buildChecklist(); commit();
 };
 document.getElementById("bSave").onclick = () => {
   const blob = new Blob([JSON.stringify(S, null, 2)], { type: "application/json" });
-  download(blob, `masterskaya-${new Date().toISOString().slice(0, 10)}.json`);
+  download(blob, `${t("fileBase")}-${new Date().toISOString().slice(0, 10)}.json`);
 };
 document.getElementById("bLoad").onclick = () => document.getElementById("fileIn").click();
 document.getElementById("fileIn").onchange = e => {
@@ -1080,7 +1338,7 @@ document.getElementById("fileIn").onchange = e => {
     if (!s) throw new Error();
     pushHist(); S = s; sel = null; propsFor = undefined;
     buildSettings(); buildOpenings(); buildChecklist(); commit();
-  }).catch(() => alert("Не получилось открыть файл. Это точно файл, сохранённый из планировщика?"));
+  }).catch(() => alert(t("loadErr")));
   e.target.value = "";
 };
 document.getElementById("bPng").onclick = () => {
@@ -1092,7 +1350,7 @@ document.getElementById("bPng").onclick = () => {
   img.onload = () => {
     const cv = document.createElement("canvas"); cv.width = vb[2] * scale; cv.height = vb[3] * scale;
     const ctx = cv.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, cv.width, cv.height);
-    ctx.drawImage(img, 0, 0); cv.toBlob(b => download(b, "masterskaya.png"));
+    ctx.drawImage(img, 0, 0); cv.toBlob(b => download(b, `${t("fileBase")}.png`));
   };
   img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(data);
 };
@@ -1102,7 +1360,14 @@ function download(blob, name) {
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-buildPalette(); buildSettings(); buildOpenings(); buildChecklist(); render();
+document.getElementById("lang").addEventListener("change", e => {
+  LANG = e.target.value;
+  localStorage.setItem(LANG_KEY, LANG);
+  propsFor = undefined;
+  applyStatic(); buildPalette(); buildOpenings(); buildChecklist(); render();
+});
+
+applyStatic(); buildPalette(); buildSettings(); buildOpenings(); buildChecklist(); render();
 </script>
 </body>
 </html>
